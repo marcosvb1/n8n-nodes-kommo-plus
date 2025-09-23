@@ -228,7 +228,15 @@ export const makeMultipleInvoiceItemsReqObject = (invoiceItemsForm: IInvoiceItem
             const itemObject: Record<string, any> = {
                 // Campos mínimos obrigatórios
                 quantity: Number(item.quantity),
-                unit_price: String(item.unit_price) // API espera string
+                unit_price: String(item.unit_price), // API espera string
+                // Campos padrão esperados pela API (conforme README)
+                sku: '',
+                unit_type: 'pc',
+                vat_rate_id: 0,
+                vat_rate_value: 20,
+                bonus_points_per_purchase: 0,
+                external_uid: '',
+                metadata: [],
             };
 
         // Product ID é OBRIGATÓRIO - deve sempre ser fornecido
@@ -250,6 +258,12 @@ export const makeMultipleInvoiceItemsReqObject = (invoiceItemsForm: IInvoiceItem
             itemObject.discount = {
                 type: 'amount',
                 value: Number(item.discount)
+            };
+        } else {
+            // Discount sempre presente, mesmo que zero
+            itemObject.discount = {
+                type: 'amount',
+                value: 0
             };
         }
 
