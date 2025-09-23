@@ -228,7 +228,7 @@ export const makeMultipleInvoiceItemsReqObject = (invoiceItemsForm: IInvoiceItem
             const itemObject: Record<string, any> = {
                 // Campos mínimos obrigatórios
                 quantity: Number(item.quantity),
-                unit_price: String(item.unit_price), // API espera string
+                unit_price: Number(item.unit_price), // API espera number
                 // Campos padrão esperados pela API (conforme README)
                 sku: '',
                 unit_type: 'pc',
