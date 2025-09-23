@@ -170,20 +170,19 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             }
         }
 
-		// 4. Campo PAYMENT_DATE se fornecido
-		if (element.payment_date && paymentDateField) {
-			const paymentTimestamp = getTimestampFromDateString(element.payment_date);
-			if (paymentTimestamp) {
-				customFields.push({
-					field_id: paymentDateField.id,
-					values: [{ value: paymentTimestamp }]
-				});
-				console.log(`[Purchases CREATE] Campo PAYMENT_DATE adicionado: ${element.payment_date} -> ${paymentTimestamp}`);
-			}
-		}
-
-		// 5. Campo CREATED_AT será adicionado como date_create no payload principal, não como custom field
-
+		        // 4. Campo PAYMENT_DATE se fornecido
+				if (element.payment_date && paymentDateField) {
+					const paymentTimestamp = getTimestampFromDateString(element.payment_date);
+					if (paymentTimestamp) {
+						customFields.push({
+							field_id: paymentDateField.id,
+							values: [{ value: new Date(paymentTimestamp * 1000).toISOString() }]
+						});
+						this.logger.debug(`[Purchases CREATE] Campo PAYMENT_DATE adicionado: ${element.payment_date} -> ${new Date(paymentTimestamp * 1000).toISOString()}`);
+					}
+				}
+		
+				// 5. Campo CREATED_AT será adicionado como date_create no payload principal, não como custom field
 		// 6. Custom fields adicionais (se houver)
 		if (element.custom_fields_values && element.custom_fields_values.custom_field && element.custom_fields_values.custom_field.length > 0) {
 			console.log(`[Purchases CREATE] Processando ${element.custom_fields_values.custom_field.length} custom fields adicionais:`, JSON.stringify(element.custom_fields_values, null, 2));
@@ -212,8 +211,9 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
         if (element.created_at) {
             const createdTimestamp = getTimestampFromDateString(element.created_at);
             if (createdTimestamp) {
-                purchaseData.created_at = createdTimestamp;
-                console.log(`[Purchases CREATE] Campo created_at adicionado: ${element.created_at} -> ${createdTimestamp}`);
+                // Converter timestamp de volta para ISO 8601 string
+                purchaseData.created_at = new Date(createdTimestamp * 1000).toISOString();
+                console.log(`[Purchases CREATE] Campo created_at adicionado: ${element.created_at} -> ${purchaseData.created_at}`);
             }
         }
 
