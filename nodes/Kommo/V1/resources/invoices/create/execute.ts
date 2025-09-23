@@ -228,6 +228,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 	const body = await Promise.all(bodyPromises);
 
     // Array direto sem wrapper, como funciona com contacts
-    console.log(`[Purchases CREATE] Payload final da requisição (array direto):`, JSON.stringify(body, null, 2));
+    this.logger.debug(`[Purchases CREATE] Final request body being sent to Kommo:`, { body });
     return await apiRequest.call(this, 'POST', endpoint, body);
 }
