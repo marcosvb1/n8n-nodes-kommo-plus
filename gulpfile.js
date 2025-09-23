@@ -1,7 +1,15 @@
 const { src, dest, series } = require('gulp');
+const del = require('del'); // Adicionar import do 'del'
 
-function copyFiles() {
-	return src(['credentials/**/*', 'nodes/**/*', '!**/*.ts']).pipe(dest('dist/'));
+function clean() {
+	return del(['dist']); // Limpa a pasta dist
 }
 
-exports.build = series(copyFiles);
+function copyFiles() {
+	// Copia arquivos de credenciais para dist/credentials
+	src('credentials/**/*').pipe(dest('dist/credentials/'));
+	// Copia arquivos do nó (exceto .ts) para dist/Kommo
+	return src(['nodes/**/*', '!**/*.ts']).pipe(dest('dist/Kommo/'));
+}
+
+exports.build = series(clean, copyFiles); // Executa clean antes de copyFiles
