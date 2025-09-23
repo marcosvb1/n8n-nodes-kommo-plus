@@ -1,6 +1,6 @@
 {
 	  "name": "n8n-nodes-kommo-improved",
-	  "version": "0.1.5",
+	  "version": "0.1.6",
 	  "description": "Nó n8n para o Kommo CRM com funcionalidades adicionais.",
 	  "license": "MIT",
 	  "author": {
