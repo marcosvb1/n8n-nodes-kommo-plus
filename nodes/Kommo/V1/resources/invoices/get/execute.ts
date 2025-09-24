@@ -52,12 +52,12 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 		});
 
 		// Aplicar flattening dos custom fields
-		return this.helpers.returnJsonArray(flattenCustomFields(elements));
+		return flattenCustomFields(elements);
 	} else {
 		const responseData = await apiRequest.call(this, 'GET', endpoint, {}, qs);
 		const elements = responseData?._embedded?.elements || [];
 
 		// Aplicar flattening dos custom fields
-		return this.helpers.returnJsonArray(flattenCustomFields(elements));
+		return flattenCustomFields(elements);
 	}
 }

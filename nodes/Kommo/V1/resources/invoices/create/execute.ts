@@ -153,9 +153,9 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 				// 3.1. Calcular e adicionar o campo PREÇO (se existir)
 				if (priceField) {
 					const totalPrice = element.invoice_items.invoice_item.reduce((total, item) => {
-						const price = Number(item.unit_price) || 0;
-						const quantity = Number(item.quantity) || 0;
-						const discount = Number(item.discount) || 0;
+						const price = Number(String(item.unit_price).replace(',', '.')) || 0;
+						const quantity = Number(String(item.quantity).replace(',', '.')) || 0;
+						const discount = Number(String(item.discount).replace(',', '.')) || 0;
 						return total + (price * quantity - discount);
 					}, 0);
 
@@ -170,15 +170,16 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             }
         }
 
-		        // 4. Campo PAYMENT_DATE se fornecido
+		        // 4. Campo PAYMENT_DATE se fornecido (usar ISO 8601 sem milissegundos, offset +00:00)
 				if (element.payment_date && paymentDateField) {
 					const paymentTimestamp = getTimestampFromDateString(element.payment_date);
 					if (paymentTimestamp) {
+						const isoNoMs = new Date(paymentTimestamp * 1000).toISOString().replace(/\.\d{3}Z$/, '+00:00');
 						customFields.push({
 							field_id: paymentDateField.id,
-							values: [{ value: new Date(paymentTimestamp * 1000).toISOString() }]
+							values: [{ value: isoNoMs }]
 						});
-						this.logger.debug(`[Purchases CREATE] Campo PAYMENT_DATE adicionado: ${element.payment_date} -> ${new Date(paymentTimestamp * 1000).toISOString()}`);
+						this.logger.debug(`[Purchases CREATE] Campo PAYMENT_DATE adicionado: ${element.payment_date} -> ${isoNoMs}`);
 					}
 				}
 		
@@ -207,15 +208,14 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             purchaseData.currency_id = element.currency_id;
         }
 
-        // Campo date_create como campo direto da API (não custom field)
-        if (element.created_at) {
-            const createdTimestamp = getTimestampFromDateString(element.created_at);
-            if (createdTimestamp) {
-                // Converter timestamp de volta para ISO 8601 string
-                purchaseData.created_at = new Date(createdTimestamp * 1000).toISOString();
-                console.log(`[Purchases CREATE] Campo created_at adicionado: ${element.created_at} -> ${purchaseData.created_at}`);
-            }
-        }
+		// Campo date_create (timestamp em segundos) como campo direto da API (não custom field)
+		if (element.created_at) {
+			const createdTimestamp = getTimestampFromDateString(element.created_at);
+			if (createdTimestamp) {
+				purchaseData.date_create = createdTimestamp;
+				console.log(`[Purchases CREATE] Campo date_create adicionado: ${element.created_at} -> ${createdTimestamp}`);
+			}
+		}
 
         if (element.request_id) {
             purchaseData.request_id = element.request_id;

@@ -227,8 +227,8 @@ export const makeMultipleInvoiceItemsReqObject = (invoiceItemsForm: IInvoiceItem
         return items.map((item) => {
             const itemObject: Record<string, any> = {
                 // Campos mínimos obrigatórios
-                quantity: Number(item.quantity),
-                unit_price: Number(item.unit_price), // API espera number
+                quantity: Number(String(item.quantity).replace(',', '.')),
+                unit_price: Number(String(item.unit_price).replace(',', '.')), // API espera number
                 // Campos padrão esperados pela API (conforme README)
                 sku: '',
                 unit_type: 'pc',
@@ -254,10 +254,11 @@ export const makeMultipleInvoiceItemsReqObject = (invoiceItemsForm: IInvoiceItem
         // Não enviar description; a API irá preencher com o nome do produto
 
         // Discount configurado corretamente (opcional)
-        if (item.discount && Number(item.discount) > 0) {
+        const discountValue = item.discount ? Number(String(item.discount).replace(',', '.')) : 0;
+        if (discountValue > 0) {
             itemObject.discount = {
                 type: 'amount',
-                value: Number(item.discount)
+                value: discountValue
             };
         } else {
             // Discount sempre presente, mesmo que zero

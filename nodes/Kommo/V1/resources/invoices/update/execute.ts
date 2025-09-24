@@ -131,9 +131,9 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
                 // 3.1. Calcular e adicionar o campo PREÇO (se existir)
                 if (priceField) {
                     const totalPrice = element.invoice_items.invoice_item.reduce((total, item) => {
-                        const price = Number(item.unit_price) || 0;
-                        const quantity = Number(item.quantity) || 0;
-                        const discount = Number(item.discount) || 0;
+                        const price = Number(String(item.unit_price).replace(',', '.')) || 0;
+                        const quantity = Number(String(item.quantity).replace(',', '.')) || 0;
+                        const discount = Number(String(item.discount).replace(',', '.')) || 0;
                         return total + (price * quantity - discount);
                     }, 0);
 
@@ -148,15 +148,16 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             }
         }
 
-        // 4. Campo PAYMENT_DATE se fornecido
+        // 4. Campo PAYMENT_DATE se fornecido (usar ISO 8601 sem milissegundos, offset +00:00)
         if (element.payment_date && paymentDateField) {
             const paymentTimestamp = getTimestampFromDateString(element.payment_date);
             if (paymentTimestamp) {
+                const isoNoMs = new Date(paymentTimestamp * 1000).toISOString().replace(/\.\d{3}Z$/, '+00:00');
                 customFields.push({
                     field_id: paymentDateField.id,
-                    values: [{ value: paymentTimestamp }]
+                    values: [{ value: isoNoMs }]
                 });
-                console.log(`[Purchases UPDATE] Campo PAYMENT_DATE atualizado: ${element.payment_date} -> ${paymentTimestamp}`);
+                console.log(`[Purchases UPDATE] Campo PAYMENT_DATE atualizado: ${element.payment_date} -> ${isoNoMs}`);
             }
         }
 
@@ -176,12 +177,12 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             console.log(`[Purchases UPDATE] Nenhum custom field para atualizar`);
         }
 
-        // 6. Campo created_at como campo direto da API (não custom field)
+        // 6. Campo date_create (timestamp em segundos) como campo direto da API (não custom field)
         if (element.created_at) {
             const createdTimestamp = getTimestampFromDateString(element.created_at);
             if (createdTimestamp) {
-                purchaseData.created_at = createdTimestamp;
-                console.log(`[Purchases UPDATE] Campo created_at atualizado: ${element.created_at} -> ${createdTimestamp}`);
+                purchaseData.date_create = createdTimestamp;
+                console.log(`[Purchases UPDATE] Campo date_create atualizado: ${element.created_at} -> ${createdTimestamp}`);
             }
         }
 
