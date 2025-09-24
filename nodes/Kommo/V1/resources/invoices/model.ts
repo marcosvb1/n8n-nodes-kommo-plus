@@ -271,7 +271,7 @@ export const makeMultipleInvoiceItemsReqObject = (invoiceItemsForm: IInvoiceItem
         // A API vai preencher automaticamente description, sku, external_uid, etc.
         // com os dados originais do produto quando product_id for fornecido
 
-            // A API espera que cada item esteja dentro de um wrapper { value: {...} }
-            return { value: itemObject };
+            // A API espera o objeto do item diretamente no array de valores
+            return itemObject;
     });
 };
