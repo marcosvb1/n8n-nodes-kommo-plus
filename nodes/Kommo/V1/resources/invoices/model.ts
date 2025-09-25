@@ -134,13 +134,6 @@ export const invoiceModelDescription: INodeProperties[] = [
 		description: 'Creation date of the invoice (auto-filled if not provided)',
 	},
 	{
-		displayName: 'Currency ID',
-		name: 'currency_id',
-		type: 'number',
-		default: 952,
-		description: 'Currency ID for the invoice (e.g., 952 for BRL, 840 for USD)',
-	},
-	{
 		displayName: 'Buyer',
 		name: 'buyer',
 		type: 'fixedCollection',
@@ -224,22 +217,11 @@ export const makeMultipleInvoiceItemsReqObject = (invoiceItemsForm: IInvoiceItem
         return [];
     }
 
-        return items.map((item) => {
-            const itemObject: Record<string, any> = {
-                // Campos mínimos obrigatórios
-                quantity: Number(String(item.quantity).replace(',', '.')),
-                unit_price: Number(String(item.unit_price).replace(',', '.')), // API espera number
-                // Campos padrão esperados pela API (conforme README)
-                sku: '',
-                unit_type: 'pc',
-                vat_rate_id: 0,
-                vat_rate_value: 20,
-                bonus_points_per_purchase: 0,
-                external_uid: '',
-                metadata: [],
-            };
+    return items.map((item) => {
+        // Campos essenciais exigidos pela API
+        const quantity = Number(String(item.quantity).replace(',', '.'));
+        const unitPrice = Number(String(item.unit_price).replace(',', '.'));
 
-        // Product ID é OBRIGATÓRIO - deve sempre ser fornecido
         if (!item.catalog_element_id) {
             throw new Error('catalog_element_id (product_id) é obrigatório para cada item da fatura');
         }
@@ -249,29 +231,26 @@ export const makeMultipleInvoiceItemsReqObject = (invoiceItemsForm: IInvoiceItem
             throw new Error(`catalog_element_id inválido: ${item.catalog_element_id}. Deve ser um número válido.`);
         }
 
-        itemObject.product_id = parsed;
+        const itemObject: Record<string, any> = {
+            product_id: parsed,
+            quantity: quantity,
+            unit_price: unitPrice,
+        };
 
-        // Não enviar description; a API irá preencher com o nome do produto
-
-        // Discount configurado corretamente (opcional)
-        const discountValue = item.discount ? Number(String(item.discount).replace(',', '.')) : 0;
-        if (discountValue > 0) {
-            itemObject.discount = {
-                type: 'amount',
-                value: discountValue
-            };
-        } else {
-            // Discount sempre presente, mesmo que zero
-            itemObject.discount = {
-                type: 'amount',
-                value: 0
-            };
+        // Description opcional quando fornecida
+        if (item.description && String(item.description).trim() !== '') {
+            itemObject.description = String(item.description);
         }
 
-        // A API vai preencher automaticamente description, sku, external_uid, etc.
-        // com os dados originais do produto quando product_id for fornecido
+        // Sempre enviar discount; se zero, usar percentage 0 (alinhado ao GET)
+        const discountValue = item.discount ? Number(String(item.discount).replace(',', '.')) : 0;
+        itemObject.discount =
+            discountValue > 0
+                ? { type: 'amount', value: discountValue }
+                : { type: 'percentage', value: 0 };
 
-            // A API espera o objeto do item diretamente no array de valores
-            return itemObject;
+        // A API preencherá automaticamente description, sku, external_uid, metadata, etc.
+        // Envolver cada item no wrapper { value: { ... } }
+        return { value: itemObject } as Record<string, any>;
     });
 };

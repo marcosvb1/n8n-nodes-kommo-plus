@@ -6,7 +6,7 @@ export class Kommo extends VersionedNodeType {
 		const baseDescription: INodeTypeBaseDescription = {
 			displayName: 'Kommo+',
 			name: 'kommo',
-			icon: 'file:kommo_logo.svg',
+			icon: 'file:icon.svg',
 			group: ['output'],
 			subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 			description: 'Enhanced Kommo API integration with advanced features',

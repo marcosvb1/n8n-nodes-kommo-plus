@@ -29,7 +29,7 @@ export class KommoV1 implements INodeType {
 			...baseDescription,
 			displayName: 'Kommo+',
 			name: 'kommo',
-			icon: 'file:kommo_logo.svg',
+			icon: 'file:icon.svg',
 			group: ['output'],
 			version: 1,
 			subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',

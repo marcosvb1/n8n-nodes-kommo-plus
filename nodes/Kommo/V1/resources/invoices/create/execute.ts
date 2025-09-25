@@ -68,10 +68,10 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
         // 2. Campo STATUS (obrigatório)
         if (statusField) {
             let selectedStatus = element.status;
-            let statusEnum = null;
+            let statusEnum = null as any;
 
             // Se nenhum status foi especificado, usar o primeiro disponível no campo
-            if (!selectedStatus && statusField.enums && statusField.enums.length > 0) {
+            if (!selectedStatus && Array.isArray(statusField.enums) && statusField.enums.length > 0) {
                 statusEnum = statusField.enums[0];
                 selectedStatus = statusEnum.value || statusEnum.name || 'Created';
                 console.log(`[Purchases CREATE] Nenhum status especificado. Usando primeiro disponível: ${selectedStatus}`);
@@ -79,67 +79,57 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
                 // Fallback se não houver enums disponíveis
                 selectedStatus = 'Created';
                 console.log(`[Purchases CREATE] Nenhum status especificado e nenhuma opção encontrada. Usando fallback: ${selectedStatus}`);
-            } else {
+            } else if (Array.isArray(statusField.enums) && statusField.enums.length > 0) {
                 // Procurar o enum correspondente ao status especificado
-                if (statusField.enums && statusField.enums.length > 0) {
-                    statusEnum = statusField.enums.find((e: any) =>
-                        e.value === selectedStatus || e.name === selectedStatus
-                    );
-                }
+                statusEnum = statusField.enums.find((e: any) => e.value === selectedStatus || e.name === selectedStatus) || null;
             }
 
-            // Usar enum_id se disponível, senão usar value
-            if (statusEnum && statusEnum.id) {
-                customFields.push({
-                    field_id: statusField.id,
-                    values: [{ enum_id: statusEnum.id }]
-                });
+            // Preferir sempre enum_id quando possível
+            if (statusEnum?.id) {
+                customFields.push({ field_id: statusField.id, values: [{ enum_id: statusEnum.id }] });
                 console.log(`[Purchases CREATE] Status usando enum_id: ${selectedStatus} -> ID ${statusEnum.id}`);
+            } else if (Array.isArray(statusField.enums) && statusField.enums[0]?.id) {
+                const fallbackEnumId = statusField.enums[0].id;
+                customFields.push({ field_id: statusField.id, values: [{ enum_id: fallbackEnumId }] });
+                console.log(`[Purchases CREATE] Status sem correspondência. Usando primeiro enum_id disponível: ${fallbackEnumId}`);
             } else {
-                customFields.push({
-                    field_id: statusField.id,
-                    values: [{ value: selectedStatus }]
-                });
-                console.log(`[Purchases CREATE] Status usando value (fallback): ${selectedStatus}`);
+                customFields.push({ field_id: statusField.id, values: [{ value: selectedStatus }] });
+                console.log(`[Purchases CREATE] Status usando value (último fallback): ${selectedStatus}`);
             }
         }
 
         // 3. Campo ITEMS se fornecidos
         if (element.invoice_items?.invoice_item?.length && itemsField) {
             console.log(`[Purchases CREATE] Processando invoice_items:`, JSON.stringify(element.invoice_items, null, 2));
-            const invoiceItemsValues = makeMultipleInvoiceItemsReqObject(element.invoice_items);
+			const invoiceItemsValues = makeMultipleInvoiceItemsReqObject(element.invoice_items);
+			// Auto-preencher description com o nome do produto quando ausente
+			try {
+				const productIds = invoiceItemsValues
+					.map((v: any) => v?.value?.product_id)
+					.filter((id: any) => typeof id === 'number');
+
+				if (productIds.length > 0) {
+					const catalogsResponse = await apiRequest.call(this, 'GET', 'catalogs', {});
+					const catalogs = catalogsResponse?._embedded?.catalogs || [];
+					const productCatalog = catalogs.find((c: any) => c.type === 'products');
+
+					if (productCatalog) {
+						const elementsPages = await apiRequestAllItems.call(this, 'GET', `catalogs/${productCatalog.id}/elements`, {}, { limit: 250 });
+						const elements = elementsPages.flatMap((p: any) => p?._embedded?.elements || []);
+						const idToName = new Map(elements.map((el: any) => [el.id, el.name]));
+
+						invoiceItemsValues.forEach((v: any) => {
+							if (v?.value && !v.value.description && v.value.product_id) {
+								const name = idToName.get(v.value.product_id);
+								if (name) v.value.description = name;
+							}
+						});
+					}
+				}
+			} catch (autoDescErr) {
+				console.log('[Purchases CREATE] ⚠️ Falha ao preencher description automática dos itens:', autoDescErr);
+			}
             console.log(`[Purchases CREATE] Invoice items values gerados:`, JSON.stringify(invoiceItemsValues, null, 2));
-            // Preencher automaticamente description com o nome do produto quando ausente
-            try {
-                const productIds = invoiceItemsValues
-                    .map((v: any) => v?.value?.product_id)
-                    .filter((id: any) => typeof id === 'number');
-
-                if (productIds.length > 0) {
-                    const catalogsResponse = await apiRequest.call(this, 'GET', 'catalogs', {});
-                    const catalogs = catalogsResponse?._embedded?.catalogs || [];
-                    const productCatalog = catalogs.find((c: any) => c.type === 'products');
-
-                    if (productCatalog) {
-                        const elementsPages = await apiRequestAllItems.call(this, 'GET', `catalogs/${productCatalog.id}/elements`, {}, { limit: 250 });
-                        const elements = elementsPages.flatMap((p: any) => p?._embedded?.elements || []);
-                        const idToName = new Map(elements.map((el: any) => [el.id, el.name]));
-
-                        invoiceItemsValues.forEach((v: any) => {
-                            if (v?.value && !v.value.description && v.value.product_id) {
-                                const name = idToName.get(v.value.product_id);
-                                if (name) {
-                                    v.value.description = name;
-                                }
-                            }
-                        });
-                    } else {
-                        console.log('[Purchases CREATE] ⚠️ Catálogo de produtos não encontrado. Pulando auto description.');
-                    }
-                }
-            } catch (autoDescErr) {
-                console.log('[Purchases CREATE] ⚠️ Falha ao preencher description automática dos itens:', autoDescErr);
-            }
             if (invoiceItemsValues.length > 0) {
                 customFields.push({
                     field_id: itemsField.id,
@@ -150,7 +140,7 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
                     values: invoiceItemsValues
                 }, null, 2));
 
-				// 3.1. Calcular e adicionar o campo PREÇO (se existir)
+				// 3.1. Calcular e adicionar o campo PRICE (se existir)
 				if (priceField) {
 					const totalPrice = element.invoice_items.invoice_item.reduce((total, item) => {
 						const price = Number(String(item.unit_price).replace(',', '.')) || 0;
@@ -162,7 +152,7 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 					if (totalPrice > 0) {
 						customFields.push({
 							field_id: priceField.id,
-							values: [{ value: String(totalPrice) }]
+							values: [{ value: totalPrice }]
 						});
 						console.log(`[Purchases CREATE] Campo PRICE adicionado: ${totalPrice}`);
 					}
@@ -170,16 +160,15 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             }
         }
 
-		        // 4. Campo PAYMENT_DATE se fornecido (usar ISO 8601 sem milissegundos, offset +00:00)
+		        // 4. Campo PAYMENT_DATE se fornecido (enviar timestamp em segundos)
 				if (element.payment_date && paymentDateField) {
 					const paymentTimestamp = getTimestampFromDateString(element.payment_date);
 					if (paymentTimestamp) {
-						const isoNoMs = new Date(paymentTimestamp * 1000).toISOString().replace(/\.\d{3}Z$/, '+00:00');
 						customFields.push({
 							field_id: paymentDateField.id,
-							values: [{ value: isoNoMs }]
+							values: [{ value: paymentTimestamp }]
 						});
-						this.logger.debug(`[Purchases CREATE] Campo PAYMENT_DATE adicionado: ${element.payment_date} -> ${isoNoMs}`);
+						this.logger.debug(`[Purchases CREATE] Campo PAYMENT_DATE adicionado: ${element.payment_date} -> ${paymentTimestamp}`);
 					}
 				}
 		
@@ -203,17 +192,14 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             purchaseData.custom_fields_values = customFields;
         }
 
-        // Adicionar currency_id se disponível
-        if (element.currency_id) {
-            purchaseData.currency_id = element.currency_id;
-        }
+        // currency_id não será enviado no create para espelhar payload válido do HTTP Request
 
-		// Campo date_create (timestamp em segundos) como campo direto da API (não custom field)
+		// Campo created_at (timestamp em segundos) como campo direto da API (não custom field)
 		if (element.created_at) {
 			const createdTimestamp = getTimestampFromDateString(element.created_at);
 			if (createdTimestamp) {
-				purchaseData.date_create = createdTimestamp;
-				console.log(`[Purchases CREATE] Campo date_create adicionado: ${element.created_at} -> ${createdTimestamp}`);
+				purchaseData.created_at = createdTimestamp;
+				console.log(`[Purchases CREATE] Campo created_at adicionado: ${element.created_at} -> ${createdTimestamp}`);
 			}
 		}
 
