@@ -6,7 +6,7 @@ class KommoLongLivedApi {
         this.name = 'kommoLongLivedApi';
         this.displayName = 'Kommo CRM Long-Lived Token API';
         this.documentationUrl = 'https://developers.kommo.com/docs/oauth/long-lived-token';
-        this.icon = 'file:Kommo_logo.svg';
+        this.icon = 'file:kommo_logo.svg';
         this.properties = [
             {
                 displayName: 'Subdomínio',
