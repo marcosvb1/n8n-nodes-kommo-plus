@@ -71,15 +71,15 @@ export const description: INotesProperties = [
 					value: 'updated_at',
 				},
 			]),
-			addPageDescription({
-				show: {
-					...displayOptions.show,
-					returnAll: [false],
-				},
-			}),
-			addLimitDescription(displayOptions),
 		],
 	},
+	addPageDescription({
+		show: {
+			...displayOptions.show,
+			returnAll: [false],
+		},
+	}),
+	addLimitDescription(displayOptions),
 	{
 		displayName: 'Simplify Output',
 		name: 'simplify',

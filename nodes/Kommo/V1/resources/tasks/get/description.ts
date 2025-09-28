@@ -96,15 +96,15 @@ export const description: ITasksProperties = [
 					value: 'bookings',
 				},
 			]),
-			addPageDescription({
-				show: {
-					...displayOptions.show,
-					returnAll: [false],
-				},
-			}),
-			addLimitDescription(displayOptions),
 		],
 	},
+	addPageDescription({
+		show: {
+			...displayOptions.show,
+			returnAll: [false],
+		},
+	}),
+	addLimitDescription(displayOptions),
 	{
 		displayName: 'Simplify Output',
 		name: 'simplify',

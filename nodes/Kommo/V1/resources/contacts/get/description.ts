@@ -108,16 +108,16 @@ export const description: IContactsProperties = [
 					value: 'customers',
 				},
 			]),
-			addPageDescription({
-				show: {
-					...displayOptions.show,
-					returnAll: [false],
-				},
-			}),
-			addLimitDescription(displayOptions),
 		],
 	},
-  {
+	addPageDescription({
+		show: {
+			...displayOptions.show,
+			returnAll: [false],
+		},
+	}),
+	addLimitDescription(displayOptions),
+	{
     displayName: 'Simplify Output',
     name: 'simplify',
     type: 'boolean',

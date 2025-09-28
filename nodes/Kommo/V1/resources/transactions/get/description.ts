@@ -33,15 +33,15 @@ export const description: ITransactionsProperties = [
 					value: 'id',
 				},
 			]),
-			addPageDescription({
-				show: {
-					...displayOptions.show,
-					returnAll: [false],
-				},
-			}),
-			addLimitDescription(displayOptions),
 		],
 	},
+	addPageDescription({
+		show: {
+			...displayOptions.show,
+			returnAll: [false],
+		},
+	}),
+	addLimitDescription(displayOptions),
 	{
 		displayName: 'Simplify Output',
 		name: 'simplify',

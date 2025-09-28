@@ -51,7 +51,6 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
 	const body = {} as IDataObject;
 	const qs = {} as IDataObject;
-    const simplify = this.getNodeParameter('simplify', 0, true) as boolean;
 
 	//--------------------------------Add filter--------------------------------------
 
@@ -118,25 +117,17 @@ export async function execute(
 	const requestMethod = 'GET';
 	const endpoint = `leads`;
 
-    if (returnAll) {
-        const pages = await await apiRequestAllItems.call(
-            this,
-            requestMethod,
-            endpoint,
-            body,
-            qs,
-        );
-        if (simplify) {
-            const leads = pages.flatMap((page: any) => page?._embedded?.leads ?? []);
-            return this.helpers.returnJsonArray(leads);
-        }
-        return this.helpers.returnJsonArray(pages);
-    }
+	if (returnAll) {
+		const responseData = await await apiRequestAllItems.call(
+			this,
+			requestMethod,
+			endpoint,
+			body,
+			qs,
+		);
+		return this.helpers.returnJsonArray(responseData);
+	}
 
-    const responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
-    if (simplify) {
-        const leads = (responseData as any)?._embedded?.leads ?? [];
-        return this.helpers.returnJsonArray(leads);
-    }
-    return this.helpers.returnJsonArray(responseData);
+	const responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
+	return this.helpers.returnJsonArray(responseData);
 }

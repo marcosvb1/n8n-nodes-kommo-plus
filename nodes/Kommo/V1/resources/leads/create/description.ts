@@ -15,28 +15,35 @@ export const createLeadModel: INodeProperties[] = [
 		{
 			displayName: 'Contacts',
 			name: 'contacts',
-			type: 'fixedCollection',
-			typeOptions: {
-				multipleValues: true,
-			},
-			default: {},
-			placeholder: 'Add contact',
-			options: [
+			values: [
 				{
-					displayName: 'Contact',
-					name: 'contact',
-					values: [
+					displayName: 'Contacts',
+					name: 'id',
+					type: 'fixedCollection',
+					typeOptions: {
+						multipleValues: true,
+					},
+					default: [],
+					required: true,
+					placeholder: 'Add contact',
+					options: [
 						{
-							displayName: 'ID',
-							name: 'id',
-							type: 'number',
-							default: '',
-						},
-						{
-							displayName: 'Is Main',
-							name: 'is_main',
-							type: 'boolean',
-							default: true,
+							displayName: 'Contact',
+							name: 'contact',
+							values: [
+								{
+									displayName: 'ID',
+									name: 'id',
+									type: 'number',
+									default: '',
+								},
+								{
+									displayName: 'Is Main',
+									name: 'is_main',
+									type: 'boolean',
+									default: true,
+								},
+							],
 						},
 					],
 				},
@@ -45,22 +52,29 @@ export const createLeadModel: INodeProperties[] = [
 		{
 			displayName: 'Companies',
 			name: 'companies',
-			type: 'fixedCollection',
-			typeOptions: {
-				multipleValues: true,
-			},
-			default: {},
-			placeholder: 'Add company',
-			options: [
+			values: [
 				{
-					displayName: 'Company',
-					name: 'company',
-					values: [
+					displayName: 'Companies',
+					name: 'id',
+					type: 'fixedCollection',
+					typeOptions: {
+						multipleValues: true,
+					},
+					default: [],
+					required: true,
+					placeholder: 'Add company',
+					options: [
 						{
-							displayName: 'ID',
-							name: 'id',
-							type: 'number',
-							default: '',
+							displayName: 'Company',
+							name: 'company',
+							values: [
+								{
+									displayName: 'ID',
+									name: 'id',
+									type: 'number',
+									default: '',
+								},
+							],
 						},
 					],
 				},
