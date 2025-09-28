@@ -7,7 +7,7 @@ class KommoOAuth2Api {
         this.extends = ['oAuth2Api'];
         this.displayName = 'Kommo CRM OAuth2 API';
         this.documentationUrl = 'https://developers.kommo.com/docs';
-        this.icon = 'file:Kommo_logo.svg';
+        this.icon = 'file:kommo_logo.svg';
         this.properties = [
             {
                 displayName: 'Subdomínio',
