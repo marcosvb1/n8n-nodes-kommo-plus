@@ -1,3 +1,4 @@
+/* eslint-disable n8n-nodes-base/node-param-fixed-collection-type-unsorted-items */
 import { IDisplayOptions, INodeProperties } from 'n8n-workflow';
 import { ILeadsProperties } from '../../interfaces';
 import { addJsonParametersDescription } from '../../_components/JsonParametersDescription';
@@ -10,8 +11,7 @@ const displayOptions: IDisplayOptions | undefined = {
 	},
 };
 
-export const createLeadModel: INodeProperties[] = [
-	...makeLeadModelDescription([
+export const createLeadModel: INodeProperties[] = makeLeadModelDescription([
 		{
 			displayName: 'Contacts',
 			name: 'contacts',
@@ -80,8 +80,7 @@ export const createLeadModel: INodeProperties[] = [
 				},
 			],
 		},
-	]),
-];
+	]);
 
 export const description: ILeadsProperties = [
 	...addJsonParametersDescription(displayOptions),
