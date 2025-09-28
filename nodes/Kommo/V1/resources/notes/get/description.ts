@@ -63,29 +63,29 @@ export const description: INotesProperties = [
 		options: [
 			addSortDescription(undefined, [
 				{
-					name: 'Date Update',
-					value: 'updated_at',
-				},
-				{
 					name: 'ID',
 					value: 'id',
 				},
+				{
+					name: 'Updated At',
+					value: 'updated_at',
+				},
 			]),
+			addPageDescription({
+				show: {
+					...displayOptions.show,
+					returnAll: [false],
+				},
+			}),
+			addLimitDescription(displayOptions),
 		],
 	},
-  {
-    displayName: 'Simplify Output',
-    name: 'simplify',
-    type: 'boolean',
-    default: true,
-    description: 'Whether to return only the notes array instead of the full response',
-    displayOptions,
-  },
-	addPageDescription({
-		show: {
-			...displayOptions.show,
-			returnAll: [false],
-		},
-	}),
-	addLimitDescription(displayOptions),
+	{
+		displayName: 'Simplify Output',
+		name: 'simplify',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response',
+		displayOptions,
+	},
 ];

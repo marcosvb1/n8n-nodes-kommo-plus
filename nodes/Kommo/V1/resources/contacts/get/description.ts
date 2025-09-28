@@ -108,6 +108,13 @@ export const description: IContactsProperties = [
 					value: 'customers',
 				},
 			]),
+			addPageDescription({
+				show: {
+					...displayOptions.show,
+					returnAll: [false],
+				},
+			}),
+			addLimitDescription(displayOptions),
 		],
 	},
   {
@@ -118,11 +125,4 @@ export const description: IContactsProperties = [
     description: 'Whether to return only the contacts array instead of the full response',
     displayOptions,
   },
-	addPageDescription({
-		show: {
-			...displayOptions.show,
-			returnAll: [false],
-		},
-	}),
-	addLimitDescription(displayOptions),
 ];

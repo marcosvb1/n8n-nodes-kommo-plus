@@ -6,6 +6,7 @@ import { addLimitDescription } from '../../_components/LimitDescription';
 import { addPageDescription } from '../../_components/PageDescription';
 import { addReturnAll } from '../../_components/ReturnAllDescription';
 import { addSortDescription } from '../../_components/SortDescription';
+import { addWithDescription } from '../../_components/WithDescription';
 
 const displayOptions: IDisplayOptions | undefined = {
   show: {
@@ -65,9 +66,32 @@ export const description: ICustomersProperties = [
     displayOptions,
     options: [
       addSortDescription(undefined, [
-        { name: 'Date Update', value: 'updated_at' },
-        { name: 'ID', value: 'id' },
+        {
+          name: 'ID',
+          value: 'id',
+        },
       ]),
+      addWithDescription(undefined, [
+        {
+          name: 'Catalog Elements',
+          value: 'catalog_elements',
+        },
+        {
+          name: 'Contacts',
+          value: 'contacts',
+        },
+        {
+          name: 'Companies',
+          value: 'companies',
+        },
+      ]),
+      addPageDescription({
+        show: {
+          ...displayOptions.show,
+          returnAll: [false],
+        },
+      }),
+      addLimitDescription(displayOptions),
     ],
   },
   {
@@ -78,10 +102,6 @@ export const description: ICustomersProperties = [
     description: 'Whether to return only the customers array instead of the full response',
     displayOptions,
   },
-  addPageDescription({
-    show: { ...displayOptions.show, returnAll: [false] },
-  }),
-  addLimitDescription(displayOptions),
 ];
 
 

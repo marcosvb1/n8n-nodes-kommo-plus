@@ -112,6 +112,13 @@ export const description: ICompaniesProperties = [
 					value: 'contacts',
 				},
 			]),
+			addPageDescription({
+				show: {
+					...displayOptions.show,
+					returnAll: [false],
+				},
+			}),
+			addLimitDescription(displayOptions),
 		],
 	},
   {
@@ -122,11 +129,4 @@ export const description: ICompaniesProperties = [
     description: 'Whether to return only the companies array instead of the full response',
     displayOptions,
   },
-	addPageDescription({
-		show: {
-			...displayOptions.show,
-			returnAll: [false],
-		},
-	}),
-	addLimitDescription(displayOptions),
 ];

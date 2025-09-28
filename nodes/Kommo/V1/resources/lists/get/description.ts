@@ -3,6 +3,7 @@ import { IListsProperties } from '../../interfaces';
 import { addLimitDescription } from '../../_components/LimitDescription';
 import { addPageDescription } from '../../_components/PageDescription';
 import { addReturnAll } from '../../_components/ReturnAllDescription';
+import { addSortDescription } from '../../_components/SortDescription';
 
 const displayOptions: IDisplayOptions | undefined = {
 	show: {
@@ -13,19 +14,36 @@ const displayOptions: IDisplayOptions | undefined = {
 
 export const description: IListsProperties = [
 	addReturnAll(displayOptions),
-  {
-    displayName: 'Simplify Output',
-    name: 'simplify',
-    type: 'boolean',
-    default: true,
-    description: 'Whether to return only the catalogs array instead of the full response',
-    displayOptions,
-  },
-	addPageDescription({
-		show: {
-			...displayOptions.show,
-			returnAll: [false],
-		},
-	}),
-	addLimitDescription(displayOptions),
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		description: 'Add options for the request',
+		displayOptions,
+		options: [
+			addSortDescription(undefined, [
+				{
+					name: 'ID',
+					value: 'id',
+				},
+			]),
+			addPageDescription({
+				show: {
+					...displayOptions.show,
+					returnAll: [false],
+				},
+			}),
+			addLimitDescription(displayOptions),
+		],
+	},
+	{
+		displayName: 'Simplify Output',
+		name: 'simplify',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response',
+		displayOptions,
+	},
 ];

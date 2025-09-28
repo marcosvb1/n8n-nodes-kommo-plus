@@ -4,6 +4,7 @@ import { addLimitDescription } from '../../_components/LimitDescription';
 import { addPageDescription } from '../../_components/PageDescription';
 import { addReturnAll } from '../../_components/ReturnAllDescription';
 import { addFilterDescription } from '../../_components/FilterDescription';
+import { addSortDescription } from '../../_components/SortDescription';
 
 const displayOptions: IDisplayOptions | undefined = {
 	show: {
@@ -24,16 +25,34 @@ export const description: IListsProperties = [
 		required: true,
 		description: 'Select list. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>.',
 		displayOptions,
+		options: [
+			addSortDescription(undefined, [
+				{
+					name: 'ID',
+					value: 'id',
+				},
+				{
+					name: 'Sort',
+					value: 'sort',
+				},
+			]),
+			addPageDescription({
+				show: {
+					...displayOptions.show,
+					returnAll: [false],
+				},
+			}),
+			addLimitDescription(displayOptions),
+		],
 	},
-	addReturnAll(displayOptions),
-  {
-    displayName: 'Simplify Output',
-    name: 'simplify',
-    type: 'boolean',
-    default: true,
-    description: 'Whether to return only the elements array instead of the full response',
-    displayOptions,
-  },
+	{
+		displayName: 'Simplify Output',
+		name: 'simplify',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response',
+		displayOptions,
+	},
 	addFilterDescription(displayOptions, [
 		{
 			displayName: 'Query',
@@ -50,11 +69,4 @@ export const description: IListsProperties = [
 			description: 'Element IDs separated by commas',
 		},
 	]),
-	addPageDescription({
-		show: {
-			...displayOptions.show,
-			returnAll: [false],
-		},
-	}),
-	addLimitDescription(displayOptions),
 ];

@@ -150,6 +150,13 @@ export const description: ILeadsProperties = [
 					value: 'source_id',
 				},
 			]),
+			addPageDescription({
+				show: {
+					...displayOptions.show,
+					returnAll: [false],
+				},
+			}),
+			addLimitDescription(displayOptions),
 		],
 	},
   {
@@ -160,11 +167,4 @@ export const description: ILeadsProperties = [
     description: 'Whether to return only the leads array instead of the full response',
     displayOptions,
   },
-	addPageDescription({
-		show: {
-			...displayOptions.show,
-			returnAll: [false],
-		},
-	}),
-	addLimitDescription(displayOptions),
 ];

@@ -6,6 +6,7 @@ import { addLimitDescription } from '../../_components/LimitDescription';
 import { addPageDescription } from '../../_components/PageDescription';
 import { addReturnAll } from '../../_components/ReturnAllDescription';
 import { addSortDescription } from '../../_components/SortDescription';
+import { addWithDescription } from '../../_components/WithDescription';
 
 const displayOptions: IDisplayOptions | undefined = {
 	show: {
@@ -85,33 +86,31 @@ export const description: ITasksProperties = [
 		options: [
 			addSortDescription(undefined, [
 				{
-					name: 'Date Create',
-					value: 'created_at',
-				},
-				{
-					name: 'Complete Till',
-					value: 'complete_till',
-				},
-				{
 					name: 'ID',
 					value: 'id',
 				},
 			]),
+			addWithDescription(undefined, [
+				{
+					name: 'Result with Bookings',
+					value: 'bookings',
+				},
+			]),
+			addPageDescription({
+				show: {
+					...displayOptions.show,
+					returnAll: [false],
+				},
+			}),
+			addLimitDescription(displayOptions),
 		],
 	},
-  {
-    displayName: 'Simplify Output',
-    name: 'simplify',
-    type: 'boolean',
-    default: true,
-    description: 'Whether to return only the tasks array instead of the full response',
-    displayOptions,
-  },
-	addPageDescription({
-		show: {
-			...displayOptions.show,
-			returnAll: [false],
-		},
-	}),
-	addLimitDescription(displayOptions),
+	{
+		displayName: 'Simplify Output',
+		name: 'simplify',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response',
+		displayOptions,
+	},
 ];
