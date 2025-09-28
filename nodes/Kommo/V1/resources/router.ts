@@ -101,7 +101,7 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 				}
 			}
 
-			const simplify = this.getNodeParameter('simplify', 0, true) as boolean;
+			let simplify = false; try { simplify = this.getNodeParameter("simplify", 0, false) as boolean; } catch {}
 			const normalized = simplify ? simplifyPayload(responseData) : responseData;
 
 			const executionData = this.helpers.constructExecutionMetaData(
