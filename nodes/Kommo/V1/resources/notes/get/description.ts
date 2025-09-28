@@ -80,12 +80,4 @@ export const description: INotesProperties = [
 			addLimitDescription(displayOptions),
 		],
 	},
-	{
-		displayName: 'Simplify Output',
-		name: 'simplify',
-		type: 'boolean',
-		default: true,
-		description: 'Whether to return a simplified version of the response',
-		displayOptions,
-	},
 ];

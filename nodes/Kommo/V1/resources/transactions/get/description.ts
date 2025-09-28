@@ -42,14 +42,6 @@ export const description: ITransactionsProperties = [
 			addLimitDescription(displayOptions),
 		],
 	},
-	{
-		displayName: 'Simplify Output',
-		name: 'simplify',
-		type: 'boolean',
-		default: true,
-		description: 'Whether to return a simplified version of the response',
-		displayOptions,
-	},
 	addFilterDescription(displayOptions, [
 		{
 			displayName: 'Query',
