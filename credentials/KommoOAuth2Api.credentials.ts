@@ -5,7 +5,7 @@ export class KommoOAuth2Api implements ICredentialType {
 	extends = ['oAuth2Api'];
 	displayName = 'Kommo CRM OAuth2 API';
 	documentationUrl = 'https://developers.kommo.com/docs';
-	icon = 'file:kommo_logo.svg' as const;
+	icon = 'file:Kommo_logo.svg' as const;
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Subdomínio',

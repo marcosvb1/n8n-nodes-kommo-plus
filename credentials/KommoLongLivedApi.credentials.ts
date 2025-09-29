@@ -4,7 +4,16 @@ export class KommoLongLivedApi implements ICredentialType {
 	name = 'kommoLongLivedApi';
 	displayName = 'Kommo CRM Long-Lived Token API';
 	documentationUrl = 'https://developers.kommo.com/docs/oauth/long-lived-token';
-	icon = 'file:kommo_logo.svg' as const;
+	icon = 'file:Kommo_logo.svg' as const;
+
+	authenticate = {
+		type: 'generic' as const,
+		properties: {
+			headers: {
+				Authorization: '=Bearer {{$credentials.accessToken}}',
+			},
+		},
+	};
 
 	properties: INodeProperties[] = [
 		{
