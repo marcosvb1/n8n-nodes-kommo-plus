@@ -35,10 +35,9 @@ interface FilterFromFrontend {
 export async function execute(
 	this: IExecuteFunctions,
 	index: number,
-): Promise<INodeExecutionData[]> {
+): Promise<IDataObject | IDataObject[]> {
 	const body = {} as IDataObject;
 	const qs = {} as IDataObject;
-    const simplify = this.getNodeParameter('simplify', 0, true) as boolean;
 
 	//--------------------------------Add filter--------------------------------------
 
@@ -62,7 +61,10 @@ export async function execute(
 				sort_order: string;
 			};
 		};
+		with?: string[];
 	};
+
+	qs.with = options.with ? options.with.join(',') : undefined;
 
 	if (options.sort?.sortSettings) {
 		qs.order = {
@@ -94,17 +96,9 @@ export async function execute(
             body,
             qs,
         );
-        if (simplify) {
-            const tasks = pages.flatMap((page: any) => page?._embedded?.tasks ?? []);
-            return this.helpers.returnJsonArray(tasks);
-        }
-        return this.helpers.returnJsonArray(pages);
+        return pages.flatMap((page: any) => page?._embedded?.tasks ?? []);
     }
 
     const responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
-    if (simplify) {
-        const tasks = (responseData as any)?._embedded?.tasks ?? [];
-        return this.helpers.returnJsonArray(tasks);
-    }
-    return this.helpers.returnJsonArray(responseData);
+    return (responseData as any)?._embedded?.tasks ?? responseData;
 }

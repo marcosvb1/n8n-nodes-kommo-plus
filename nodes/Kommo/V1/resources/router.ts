@@ -11,26 +11,21 @@ import * as lists from './lists';
 import * as invoices from './invoices';
 import * as unsorted from './unsorted';
 import * as customers from './customers';
-import * as transactions from './transactions';
 import * as webhooks from './webhooks';
+import * as entityLinks from './entityLinks';
 
 function simplifyPayload(payload: any): any {
 	if (Array.isArray(payload)) return payload.map(simplifyPayload);
 	if (!payload || typeof payload !== 'object') return payload;
 
-	// Extract main embedded arrays if present
-	if (payload._embedded && typeof payload._embedded === 'object') {
-		const embedded = payload._embedded as Record<string, any>;
-		const firstKey = Object.keys(embedded)[0];
-		if (firstKey && Array.isArray(embedded[firstKey])) {
-			return embedded[firstKey].map((el: any) => simplifyPayload(el));
-		}
+	// Remove apenas _links (ruído), mantém _embedded (dados úteis quando usa ?with parameter)
+	const { _links, ...rest } = payload as Record<string, any>;
+	
+	// Recursively simplify nested objects/arrays (incluindo _embedded)
+	for (const key of Object.keys(rest)) {
+		rest[key] = simplifyPayload(rest[key]);
 	}
-
-	// Remove noise keys
-	const { _links, _embedded, ...rest } = payload as Record<string, any>;
-	// Recursively simplify nested objects/arrays
-	for (const key of Object.keys(rest)) rest[key] = simplifyPayload(rest[key]);
+	
 	return rest;
 }
 
@@ -52,9 +47,9 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 		else if (resource === 'lists') operation = this.getNodeParameter('operation', i, 'getLists') as string;
 		else if (resource === 'customers') operation = this.getNodeParameter('operation', i, 'getCustomers') as string;
 		else if (resource === 'invoices') operation = this.getNodeParameter('operation', i, 'getInvoices') as string;
-		else if (resource === 'transactions') operation = this.getNodeParameter('operation', i, 'get') as string;
 		else if (resource === 'webhooks') operation = this.getNodeParameter('operation', i, 'create') as string;
 		else if (resource === 'unsorted') operation = this.getNodeParameter('operation', i, 'get') as string;
+		else if (resource === 'entityLinks') operation = this.getNodeParameter('operation', i, 'get') as string;
 		else operation = this.getNodeParameter('operation', i) as string;
 
 		const kommo = {
@@ -81,25 +76,25 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 				responseData = await customers[kommo.operation].execute.call(this, i);
 			} else if (kommo.resource === 'invoices') {
 				responseData = await invoices[kommo.operation].execute.call(this, i);
-			} else if (kommo.resource === 'transactions') {
-				responseData = await transactions[kommo.operation].execute.call(this, i);
 			} else if (kommo.resource === 'webhooks') {
 				responseData = await webhooks[kommo.operation].execute.call(this, i);
-			} else if (kommo.resource === 'unsorted') {
-				if (kommo.operation === 'get') {
-					responseData = await unsorted.get.execute.call(this, i);
-				} else if (kommo.operation === 'summary') {
-					responseData = await unsorted.summary.execute.call(this, i);
-				} else if (kommo.operation === 'create') {
-					responseData = await unsorted.create.execute.call(this, i);
-				} else if (kommo.operation === 'accept') {
-					responseData = await unsorted.accept.execute.call(this, i);
-				} else if (kommo.operation === 'link') {
-					responseData = await unsorted.link.execute.call(this, i);
-				} else if (kommo.operation === 'reject') {
-					responseData = await unsorted.reject.execute.call(this, i);
-				}
+		} else if (kommo.resource === 'unsorted') {
+			if (kommo.operation === 'get') {
+				responseData = await unsorted.get.execute.call(this, i);
+			} else if (kommo.operation === 'summary') {
+				responseData = await unsorted.summary.execute.call(this, i);
+			} else if (kommo.operation === 'create') {
+				responseData = await unsorted.create.execute.call(this, i);
+			} else if (kommo.operation === 'accept') {
+				responseData = await unsorted.accept.execute.call(this, i);
+			} else if (kommo.operation === 'link') {
+				responseData = await unsorted.link.execute.call(this, i);
+			} else if (kommo.operation === 'reject') {
+				responseData = await unsorted.reject.execute.call(this, i);
 			}
+		} else if (kommo.resource === 'entityLinks') {
+			responseData = await entityLinks[kommo.operation].execute.call(this, i);
+		}
 
 			let simplify = false; try { simplify = this.getNodeParameter("simplify", 0, false) as boolean; } catch {}
 			const normalized = simplify ? simplifyPayload(responseData) : responseData;

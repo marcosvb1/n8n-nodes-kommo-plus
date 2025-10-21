@@ -36,10 +36,9 @@ interface FilterFromFrontend {
 export async function execute(
 	this: IExecuteFunctions,
 	index: number,
-): Promise<INodeExecutionData[]> {
+): Promise<IDataObject | IDataObject[]> {
 	const body = {} as IDataObject;
 	const qs = {} as IDataObject;
-    const simplify = this.getNodeParameter('simplify', 0, true) as boolean;
 
 	//--------------------------------Add filter--------------------------------------
 
@@ -106,17 +105,9 @@ export async function execute(
 
     if (returnAll) {
         const pages = await apiRequestAllItems.call(this, requestMethod, endpoint, body, qs);
-        if (simplify) {
-            const contacts = pages.flatMap((page: any) => page?._embedded?.contacts ?? []);
-            return this.helpers.returnJsonArray(contacts);
-        }
-        return this.helpers.returnJsonArray(pages);
+        return pages.flatMap((page: any) => page?._embedded?.contacts ?? []);
     }
 
     const responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
-    if (simplify) {
-        const contacts = (responseData as any)?._embedded?.contacts ?? [];
-        return this.helpers.returnJsonArray(contacts);
-    }
-    return this.helpers.returnJsonArray(responseData);
+    return (responseData as any)?._embedded?.contacts ?? responseData;
 }

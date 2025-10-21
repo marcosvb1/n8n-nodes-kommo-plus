@@ -13,7 +13,15 @@ import { Lock } from 'async-await-mutex-lock';
 const lock = new Lock();
 
 /**
- * Sistema de Rate Limiting - 5 requisições por segundo
+ * Sistema de Rate Limiting
+ * 
+ * Configuração: 5 requisições por segundo (300 req/min)
+ * 
+ * A API Kommo suporta aproximadamente 100 req/segundo oficialmente,
+ * mas limitamos a 5 req/s (conservador) para evitar rate limit 429.
+ * Testado em produção: 5 req/s é seguro para a maioria dos casos.
+ * 
+ * Nota: Limite é aplicado POR SUBDOMÍNIO para permitir múltiplas contas simultâneas.
  */
 interface RateLimitEntry {
 	timestamps: number[];
@@ -21,8 +29,8 @@ interface RateLimitEntry {
 }
 
 const rateLimitMap = new Map<string, RateLimitEntry>();
-const RATE_LIMIT_MAX_REQUESTS = 5;
-const RATE_LIMIT_WINDOW_MS = 1 * 1000; // 1 segundo
+const RATE_LIMIT_MAX_REQUESTS = 5;  // Máximo de requisições
+const RATE_LIMIT_WINDOW_MS = 1 * 1000;  // Por segundo (1000ms)
 
 /**
  * Verifica e aplica rate limiting por subdomínio
@@ -51,8 +59,6 @@ async function enforceRateLimit(subdomain: string): Promise<void> {
 		const oldestRequest = Math.min(...entry.timestamps);
 		const waitTime = RATE_LIMIT_WINDOW_MS - (now - oldestRequest);
 
-		console.log(`[Rate Limit] Limite de ${RATE_LIMIT_MAX_REQUESTS} req/sec excedido para ${subdomain}. Aguardando ${Math.ceil(waitTime)}ms...`);
-
 		// Aguardar até poder fazer nova requisição
 		await new Promise(resolve => setTimeout(resolve, waitTime + 100));
 
@@ -65,9 +71,6 @@ async function enforceRateLimit(subdomain: string): Promise<void> {
 
 	// Adicionar timestamp da requisição atual
 	entry.timestamps.push(now);
-
-	// Log de debug do rate limiting
-	console.log(`[Rate Limit] ${subdomain}: ${entry.timestamps.length}/${RATE_LIMIT_MAX_REQUESTS} requests na janela atual`);
 
 	// Limpar entradas antigas do mapa (limpeza periódica)
 	if (Math.random() < 0.01) { // 1% de chance a cada requisição
@@ -102,9 +105,6 @@ function cleanupRateLimitMap(): void {
  * Valida as credenciais necessárias para autenticação com a API do Kommo
  */
 function validateCredentials(credentials: any, credentialType: string): void {
-	console.log(`[Credentials] Validando credenciais do tipo: ${credentialType}`);
-	console.log(`[Credentials] Credenciais recebidas:`, Object.keys(credentials || {}));
-
 	if (!credentials) {
 		throw new NodeOperationError(
 			null as any,
@@ -123,13 +123,6 @@ function validateCredentials(credentials: any, credentialType: string): void {
 	} else if (credentialType === 'kommoLongLivedApi') {
 		requiredFields.push('subdomain', 'accessToken');
 	}
-
-	console.log(`[Credentials] Campos obrigatórios para ${credentialType}:`, requiredFields);
-	console.log(`[Credentials] Valores presentes:`, requiredFields.map(field => ({
-		field,
-		present: !!credentials[field],
-		empty: credentials[field] === '' || credentials[field]?.trim() === ''
-	})));
 
 	const missingFields = requiredFields.filter(field => !credentials[field] || credentials[field].trim() === '');
 
@@ -240,13 +233,6 @@ export async function apiRequest(
 		// Aplicar rate limiting específico por subdomínio
 		await enforceRateLimit(String(credentials.subdomain));
 
-		console.log(`[API Request] ${method} ${endpoint} - Subdomain: ${credentials.subdomain}`);
-
-		// Log detalhado do payload sendo enviado
-		if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-			console.log(`[API Request] PAYLOAD SENDO ENVIADO:`, JSON.stringify(body, null, 2));
-		}
-
 		return await this.helpers.httpRequestWithAuthentication.call(this, credentialType, options);
 	} catch (error: unknown) {
 		// Implementar retry automático para erros temporários
@@ -255,7 +241,6 @@ export async function apiRequest(
 
 		if (retryCount < maxRetries && (httpCode === 429 || httpCode >= 500)) {
 			const backoffDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Max 10s
-			console.log(`Tentativa ${retryCount + 1}/${maxRetries} falhou (HTTP ${httpCode}). Tentando novamente em ${backoffDelay}ms...`);
 
 			// Aguardar antes do retry
 			await new Promise(resolve => setTimeout(resolve, backoffDelay));

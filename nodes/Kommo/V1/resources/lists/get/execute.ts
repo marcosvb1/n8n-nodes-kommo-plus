@@ -4,10 +4,9 @@ import { apiRequest, apiRequestAllItems } from '../../../transport';
 export async function execute(
 	this: IExecuteFunctions,
 	index: number,
-): Promise<INodeExecutionData[]> {
+): Promise<IDataObject | IDataObject[]> {
 	const body = {} as IDataObject;
 	const qs = {} as IDataObject;
-    const simplify = this.getNodeParameter('simplify', 0, true) as boolean;
 
 	//---------------------------------------------------------------------------------
 
@@ -34,17 +33,9 @@ export async function execute(
             body,
             qs,
         );
-        if (simplify) {
-            const catalogs = pages.flatMap((page: any) => page?._embedded?.catalogs ?? []);
-            return this.helpers.returnJsonArray(catalogs);
-        }
-        return this.helpers.returnJsonArray(pages);
+        return pages.flatMap((page: any) => page?._embedded?.catalogs ?? []);
     }
 
     const responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
-    if (simplify) {
-        const catalogs = (responseData as any)?._embedded?.catalogs ?? [];
-        return this.helpers.returnJsonArray(catalogs);
-    }
-    return this.helpers.returnJsonArray(responseData);
+    return (responseData as any)?._embedded?.catalogs ?? responseData;
 }

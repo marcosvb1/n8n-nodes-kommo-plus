@@ -18,8 +18,8 @@ import * as lists from './resources/lists';
 import * as invoices from './resources/invoices';
 import * as unsorted from './resources/unsorted';
 import * as customers from './resources/customers';
-import * as transactions from './resources/transactions';
 import * as webhooks from './resources/webhooks';
+import * as entityLinks from './resources/entityLinks';
 
 export class KommoV1 implements INodeType {
 	description: INodeTypeDescription;
@@ -29,7 +29,7 @@ export class KommoV1 implements INodeType {
 			...baseDescription,
 			displayName: 'Kommo+',
 			name: 'kommo',
-			icon: 'file:icon.svg',
+			icon: 'file:kommo.svg',
 			group: ['output'],
 			version: 1,
 			subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
@@ -92,12 +92,12 @@ export class KommoV1 implements INodeType {
 					{ name: 'Company', value: 'companies' },
 					{ name: 'Contact', value: 'contacts' },
 					{ name: 'Customer', value: 'customers' },
+					{ name: 'Entity Link', value: 'entityLinks' },
 					{ name: 'Invoice', value: 'invoices' },
 					{ name: 'Lead', value: 'leads' },
 					{ name: 'List', value: 'lists' },
 					{ name: 'Note', value: 'notes' },
 					{ name: 'Task', value: 'tasks' },
-					{ name: 'Transaction', value: 'transactions' },
 					{ name: 'Unsorted', value: 'unsorted' },
 					{ name: 'Webhook', value: 'webhooks' },
 				],
@@ -113,8 +113,8 @@ export class KommoV1 implements INodeType {
 				...invoices.descriptions,
 				...unsorted.descriptions,
 				...customers.descriptions,
-				...transactions.descriptions,
 				...webhooks.descriptions,
+				...entityLinks.descriptions,
 			],
 		};
 	}

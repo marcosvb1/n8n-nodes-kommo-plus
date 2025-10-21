@@ -131,10 +131,14 @@ export const description: IUnsortedProperties = [
 								description: 'Retornado no response;	não	é	armazenado',
 							},
 							{
-								displayName: 'ID Do Pipeline',
+								displayName: 'Pipeline Name or ID',
 								name: 'pipeline_id',
-								type: 'number',
-								default: 0
+								type: 'options',
+								description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
+								default: '',
+								typeOptions: {
+									loadOptionsMethod: 'getPipelines',
+								},
 							},
 							{
 								displayName: 'Metadados',

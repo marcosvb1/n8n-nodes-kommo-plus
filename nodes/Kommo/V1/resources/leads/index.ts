@@ -2,8 +2,9 @@ import { INodeProperties } from 'n8n-workflow';
 
 import * as getLeads from './get';
 import * as createLeads from './create';
+import * as createLeadsComplex from './createComplex';
 import * as updateLeads from './update';
-export { getLeads, createLeads, updateLeads };
+export { getLeads, createLeads, createLeadsComplex, updateLeads };
 
 export const descriptions: INodeProperties[] = [
 	{
@@ -30,6 +31,12 @@ export const descriptions: INodeProperties[] = [
 				action: 'Create new leads',
 			},
 			{
+				name: 'Create Leads Complex',
+				value: 'createLeadsComplex',
+				description: 'Create leads with new contacts in one request',
+				action: 'Create leads with contacts',
+			},
+			{
 				name: 'Update Leads',
 				value: 'updateLeads',
 				action: 'Update leads',
@@ -40,5 +47,6 @@ export const descriptions: INodeProperties[] = [
 	},
 	...getLeads.description,
 	...createLeads.description,
+	...createLeadsComplex.description,
 	...updateLeads.description,
 ];

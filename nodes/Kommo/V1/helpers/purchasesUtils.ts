@@ -149,13 +149,10 @@ export async function findInvoicesCatalog(apiRequestFn: Function, context: any):
 } | null> {
     try {
         // 1. Listar catálogos
-        console.log('[FindInvoicesCatalog] Buscando catálogos...');
         const catalogsResponse = await apiRequestFn.call(context, 'GET', 'catalogs');
         const catalogs = catalogsResponse._embedded?.catalogs || [];
 
-        console.log(`[FindInvoicesCatalog] Encontrados ${catalogs.length} catálogos:`);
         catalogs.forEach((cat: any, index: number) => {
-            console.log(`  ${index + 1}. ${cat.name} (ID: ${cat.id}, Type: ${cat.type})`);
         });
 
         // 2. Encontrar catálogo de invoices
@@ -163,8 +160,6 @@ export async function findInvoicesCatalog(apiRequestFn: Function, context: any):
 
         // Se não encontrou tipo "invoices", tentar alternativas
         if (!invoicesCatalog) {
-            console.log('[FindInvoicesCatalog] ❌ Catálogo com type="invoices" não encontrado');
-            console.log('[FindInvoicesCatalog] Tipos disponíveis:', catalogs.map((c: any) => c.type));
 
             // Tentar encontrar por nome que contenha "invoice", "fatura" ou "compra"
             const alternativeNames = ['invoice', 'fatura', 'compra', 'purchase'];
@@ -175,27 +170,19 @@ export async function findInvoicesCatalog(apiRequestFn: Function, context: any):
             );
 
             if (invoicesCatalog) {
-                console.log(`[FindInvoicesCatalog] ⚠️ Usando catálogo alternativo: ${invoicesCatalog.name} (ID: ${invoicesCatalog.id}, Type: ${invoicesCatalog.type})`);
             } else {
-                console.log('[FindInvoicesCatalog] ❌ Nenhum catálogo adequado encontrado');
-                console.log('[FindInvoicesCatalog] Catálogos disponíveis:');
                 catalogs.forEach((cat: any) => {
-                    console.log(`  - ${cat.name} (Type: ${cat.type}, ID: ${cat.id})`);
                 });
                 return null;
             }
         }
 
-        console.log(`[FindInvoicesCatalog] ✅ Catálogo de invoices encontrado: ${invoicesCatalog.name} (ID: ${invoicesCatalog.id})`);
 
         // 3. Obter custom fields do catálogo
-        console.log(`[FindInvoicesCatalog] Buscando custom fields do catálogo ${invoicesCatalog.id}...`);
         const fieldsResponse = await apiRequestFn.call(context, 'GET', `catalogs/${invoicesCatalog.id}/custom_fields`);
         const customFields = fieldsResponse._embedded?.custom_fields || [];
 
-        console.log(`[FindInvoicesCatalog] Encontrados ${customFields.length} custom fields:`);
         customFields.forEach((field: any, index: number) => {
-            console.log(`  ${index + 1}. ${field.name} (Code: ${field.code}, Type: ${field.type}, Required: ${field.is_required})`);
         });
 
         // 4. Identificar campos importantes
@@ -269,13 +256,6 @@ export async function findInvoicesCatalog(apiRequestFn: Function, context: any):
 		}
 
 
-		console.log('[FindInvoicesCatalog] Campos identificados:');
-		console.log(`  Status Field: ${statusField ? statusField.name + ' (ID: ' + statusField.id + ')' : 'NÃO ENCONTRADO'}`);
-		console.log(`  Items Field: ${itemsField ? itemsField.name + ' (ID: ' + itemsField.id + ')' : 'NÃO ENCONTRADO'}`);
-		console.log(`  Price Field: ${priceField ? priceField.name + ' (ID: ' + priceField.id + ')' : 'NÃO ENCONTRADO'}`);
-		console.log(`  Payer Field: ${payerField ? payerField.name + ' (ID: ' + payerField.id + ')' : 'NÃO ENCONTRADO'}`);
-		console.log(`  Payment Date Field: ${paymentDateField ? paymentDateField.name + ' (ID: ' + paymentDateField.id + ')' : 'NÃO ENCONTRADO'}`);
-		console.log(`  Created At Field: ${createdAtField ? createdAtField.name + ' (ID: ' + createdAtField.id + ')' : 'NÃO ENCONTRADO'}`);
 
 		return {
 			catalog: invoicesCatalog,

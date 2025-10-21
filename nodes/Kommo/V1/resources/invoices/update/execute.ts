@@ -49,15 +49,11 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
     const { catalog, statusField, itemsField, payerField, paymentDateField, priceField } = catalogInfo;
     const endpoint = `catalogs/${catalog.id}/elements`;
 
-    console.log(`[Purchases UPDATE] Usando catálogo: ${catalog.name} (ID: ${catalog.id})`);
     if (statusField) {
-        console.log(`[Purchases UPDATE] Campo Status: ${statusField.name} (ID: ${statusField.id})`);
     }
     if (itemsField) {
-        console.log(`[Purchases UPDATE] Campo Items: ${itemsField.name} (ID: ${itemsField.id})`);
     }
     if (payerField) {
-        console.log(`[Purchases UPDATE] Campo Payer: ${payerField.name} (ID: ${payerField.id})`);
     }
 
     const elements = (this.getNodeParameter('collection.element', index, []) as IPurchaseUpdateForm[]) || [];
@@ -65,7 +61,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
     const body: any = [];
 
     for (const element of elements) {
-        console.log(`[Purchases UPDATE] Processando elemento ID: ${element.id}`);
 
         // 0) Buscar estado atual do elemento para enviar payload completo e evitar 400
         let existingElement: any | null = null;
@@ -79,7 +74,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
                 const existingResp = await apiRequest.call(this, 'GET', `catalogs/${catalog.id}/elements`, {}, { id: [element.id] as any });
                 existingElement = existingResp?._embedded?.elements?.[0] || null;
             } catch (e2) {
-                console.log('[Purchases UPDATE] ⚠️ Não foi possível obter o elemento existente. Prosseguindo com os dados informados.');
             }
         }
 
@@ -178,13 +172,10 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 
             if (chosen?.id) {
                 upsertField(statusField.id, [{ enum_id: chosen.id }]);
-                console.log(`[Purchases UPDATE] Status definido para enum_id ${chosen.id} (${chosen.value || chosen.name || chosen.enum_code})`);
             } else if (enums[0]?.id) {
                 upsertField(statusField.id, [{ enum_id: enums[0].id }]);
-                console.log(`[Purchases UPDATE] Status não correspondido. Usando primeiro enum_id: ${enums[0].id}`);
             } else {
                 upsertField(statusField.id, [{ value: String(element.status) }]);
-                console.log(`[Purchases UPDATE] Status sem enums. Enviando value: ${element.status}`);
             }
         }
 
@@ -193,7 +184,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             const payerValue = createPayerFieldValue(element.buyer);
             if (payerValue) {
                 upsertField(payerField.id, [payerValue]);
-                console.log(`[Purchases UPDATE] Campo Payer atualizado: ${JSON.stringify(payerValue)}`);
             }
         }
 
@@ -226,12 +216,10 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
                     }
                 }
             } catch (autoDescErr) {
-                console.log('[Purchases UPDATE] ⚠️ Falha ao preencher description automática dos itens:', autoDescErr);
             }
 
             if (invoiceItemsValues.length > 0) {
                 upsertField(itemsField.id, invoiceItemsValues);
-                console.log(`[Purchases UPDATE] ${invoiceItemsValues.length} itens atualizados`);
 
                 // 3.1. Calcular e adicionar o campo PREÇO (se existir) como número
                 if (priceField) {
@@ -244,7 +232,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 
                     if (totalPrice > 0) {
                         upsertField(priceField.id, [{ value: totalPrice }]);
-                        console.log(`[Purchases UPDATE] Campo PRICE atualizado: ${totalPrice}`);
                     }
                 }
             }
@@ -255,15 +242,12 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             const paymentTimestamp = getTimestampFromDateString(element.payment_date);
             if (paymentTimestamp) {
                 upsertField(paymentDateField.id, [{ value: paymentTimestamp }]);
-                console.log(`[Purchases UPDATE] Campo PAYMENT_DATE atualizado: ${element.payment_date} -> ${paymentTimestamp}`);
             }
         }
 
         // 5. Custom fields adicionais (se houver) — sobrescrever (upsert) os existentes no baseline
         if (element.custom_fields_values && element.custom_fields_values.custom_field && element.custom_fields_values.custom_field.length > 0) {
-            console.log(`[Purchases UPDATE] Processando ${element.custom_fields_values.custom_field.length} custom fields adicionais:`, JSON.stringify(element.custom_fields_values, null, 2));
             const additionalFields = makePurchaseCustomFieldReqObject(element.custom_fields_values.custom_field);
-            console.log(`[Purchases UPDATE] Custom fields processados:`, JSON.stringify(additionalFields, null, 2));
             for (const af of additionalFields) {
                 upsertField(af.field_id, af.values);
             }
@@ -272,7 +256,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
         // Incluir todos os custom_fields (baseline + alterações)
         if (customFields.length > 0) {
             purchaseData.custom_fields_values = customFields;
-            console.log(`[Purchases UPDATE] Enviando ${customFields.length} custom fields no payload`);
         }
 
         // 6. Campo created_at (timestamp em segundos) como campo direto da API (não custom field)
@@ -280,7 +263,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             const createdTimestamp = getTimestampFromDateString(element.created_at);
             if (createdTimestamp) {
                 purchaseData.created_at = createdTimestamp;
-                console.log(`[Purchases UPDATE] Campo created_at atualizado: ${element.created_at} -> ${createdTimestamp}`);
             }
         }
 
@@ -289,19 +271,14 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             purchaseData.request_id = element.request_id;
         }
 
-        console.log(`[Purchases UPDATE] Payload do elemento: ${JSON.stringify(purchaseData, null, 2)}`);
         body.push(purchaseData);
     }
 
-    console.log(`[Purchases UPDATE] Fazendo requisição PATCH para: ${endpoint}`);
-    console.log(`[Purchases UPDATE] Payload completo: ${JSON.stringify(body, null, 2)}`);
 
     try {
         // Array direto sem wrapper, como funciona com contacts
-        console.log(`[Purchases UPDATE] Payload final da requisição (array direto):`, JSON.stringify(body, null, 2));
-        const response = await apiRequest.call(this, 'PATCH', endpoint, body);
-        console.log(`[Purchases UPDATE] Resposta da API: ${JSON.stringify(response, null, 2)}`);
-        return response;
+        const responseData = await apiRequest.call(this, 'PATCH', endpoint, body);
+        return this.helpers.returnJsonArray(responseData);
     } catch (error) {
         console.error(`[Purchases UPDATE] Erro na atualização:`, error);
         throw error;

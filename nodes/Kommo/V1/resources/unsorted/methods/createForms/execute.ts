@@ -1,4 +1,4 @@
-import { IDataObject, INodeExecutionData, IExecuteFunctions } from 'n8n-workflow';
+import { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { apiRequest } from '../../../../transport';
 import { getTimestampFromDateString } from '../../../../helpers/getTimestampFromDateString';
 import { makeCustomFieldReqObject } from '../../../_components/CustomFieldsDescription';
@@ -20,96 +20,98 @@ interface ICreateItemFrontend {
 export async function execute(
   this: IExecuteFunctions,
   index: number,
-): Promise<INodeExecutionData[]> {
+): Promise<IDataObject | IDataObject[]> {
   const method = 'POST';
-  const endpoint = `leads/unsorted/forms/summary`;
+  const endpoint = `leads/unsorted/forms`;
 
-  const jsonParams = (await this.getNodeParameter('json', 0)) as boolean;
+  const jsonParams = (await this.getNodeParameter('json', index)) as boolean;
   if (jsonParams) {
-    const jsonString = (await this.getNodeParameter('jsonString', 0)) as string;
+    const jsonString = (await this.getNodeParameter('jsonString', index)) as string;
     const responseData = await apiRequest.call(this, method, endpoint, JSON.parse(jsonString));
-    return this.helpers.returnJsonArray(responseData);
+    return responseData as IDataObject | IDataObject[];
   }
 
-  const items = (await this.getNodeParameter('items', 0)) as { item: ICreateItemFrontend[] };
+  const items = (await this.getNodeParameter('items', index)) as { item: ICreateItemFrontend[] };
 
   const payload = items.item.map((i) => {
-    const metadata = i.metadata?.fields || {};
+    const metadataFields = i.metadata?.fields || {};
 
+    // Construir body sem adicionar undefined
     const body: IDataObject = {
-      request_id: i.request_id || undefined,
       source_name: i.source_name,
       source_uid: i.source_uid,
-      pipeline_id: i.pipeline_id || undefined,
-      created_at: getTimestampFromDateString(i.created_at),
-      metadata: {
-        form_id: metadata.form_id,
-        form_name: metadata.form_name,
-        form_page: metadata.form_page,
-        ip: metadata.ip,
-        form_sent_at: metadata.form_sent_at
-          ? getTimestampFromDateString(metadata.form_sent_at as unknown as string)
-          : undefined,
-        referer: metadata.referer,
-      },
-      _embedded: {
-        leads: i._embedded?.lead
-          ? [
-              {
-                ...i._embedded.lead,
-                _embedded: i._embedded.lead.tags
-                  ? { tags: i._embedded.lead.tags.split(',').map((name) => ({ name: name.trim() })) }
-                  : undefined,
-                custom_fields_values: i._embedded.lead.custom_fields_values
-                  ? makeCustomFieldReqObject(i._embedded.lead.custom_fields_values as any)
-                  : undefined,
-              },
-            ]
-          : undefined,
-        contacts: i._embedded?.contact
-          ? [
-              {
-                ...i._embedded.contact,
-                custom_fields_values: i._embedded.contact.custom_fields_values
-                  ? makeCustomFieldReqObject(i._embedded.contact.custom_fields_values as any)
-                  : undefined,
-              },
-            ]
-          : undefined,
-        companies: i._embedded?.company
-          ? [
-              {
-                ...i._embedded.company,
-                custom_fields_values: i._embedded.company.custom_fields_values
-                  ? makeCustomFieldReqObject(i._embedded.company.custom_fields_values as any)
-                  : undefined,
-              },
-            ]
-          : undefined,
-      },
     };
 
-    // Remove undefined/null keys
-    Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
-    if (body._embedded && typeof body._embedded === 'object') {
-      const emb = body._embedded as IDataObject;
-      if (!('leads' in emb)) delete emb.leads;
-      if (!('contacts' in emb)) delete emb.contacts;
-      if (!('companies' in emb)) delete emb.companies;
-      if (Object.keys(emb).length === 0) delete body._embedded;
+    // Adicionar campos opcionais apenas se tiverem valor
+    if (i.request_id) body.request_id = i.request_id;
+    if (i.pipeline_id) body.pipeline_id = i.pipeline_id;
+    if (i.created_at) body.created_at = getTimestampFromDateString(i.created_at);
+
+    // Construir metadata apenas com campos preenchidos
+    const metadata: IDataObject = {};
+    if (metadataFields.form_id) metadata.form_id = metadataFields.form_id;
+    if (metadataFields.form_name) metadata.form_name = metadataFields.form_name;
+    if (metadataFields.form_page) metadata.form_page = metadataFields.form_page;
+    if (metadataFields.ip) metadata.ip = metadataFields.ip;
+    if (metadataFields.form_sent_at) {
+      metadata.form_sent_at = getTimestampFromDateString(metadataFields.form_sent_at as unknown as string);
     }
-    if (body.metadata) {
-      Object.keys(body.metadata).forEach(
-        (k) => (body.metadata as IDataObject)[k] === undefined && delete (body.metadata as IDataObject)[k],
-      );
-      if (Object.keys(body.metadata).length === 0) delete body.metadata;
+    if (metadataFields.referer) metadata.referer = metadataFields.referer;
+    
+    if (Object.keys(metadata).length > 0) {
+      body.metadata = metadata;
+    }
+
+    // Construir _embedded apenas com entidades preenchidas
+    const embedded: IDataObject = {};
+
+    if (i._embedded?.lead) {
+      const leadData: IDataObject = { ...i._embedded.lead };
+      
+      // Adicionar tags se existirem
+      if (i._embedded.lead.tags) {
+        leadData._embedded = {
+          tags: i._embedded.lead.tags.split(',').map((name) => ({ name: name.trim() }))
+        };
+      }
+      
+      // Adicionar custom fields se existirem
+      if (i._embedded.lead.custom_fields_values) {
+        leadData.custom_fields_values = makeCustomFieldReqObject(i._embedded.lead.custom_fields_values as any);
+      }
+      
+      embedded.leads = [leadData];
+    }
+
+    if (i._embedded?.contact) {
+      const contactData: IDataObject = { ...i._embedded.contact };
+      
+      if (i._embedded.contact.custom_fields_values) {
+        contactData.custom_fields_values = makeCustomFieldReqObject(i._embedded.contact.custom_fields_values as any);
+      }
+      
+      embedded.contacts = [contactData];
+    }
+
+    if (i._embedded?.company) {
+      const companyData: IDataObject = { ...i._embedded.company };
+      
+      if (i._embedded.company.custom_fields_values) {
+        companyData.custom_fields_values = makeCustomFieldReqObject(i._embedded.company.custom_fields_values as any);
+      }
+      
+      embedded.companies = [companyData];
+    }
+
+    if (Object.keys(embedded).length > 0) {
+      body._embedded = embedded;
     }
 
     return body;
   });
 
   const responseData = await apiRequest.call(this, method, endpoint, payload);
-  return this.helpers.returnJsonArray(responseData);
+  return responseData as IDataObject | IDataObject[];
 }
 
 

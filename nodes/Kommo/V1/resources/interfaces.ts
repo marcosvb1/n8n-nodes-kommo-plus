@@ -2,7 +2,7 @@ import { AllEntities, Entity, PropertiesOf } from 'n8n-workflow';
 
 type IKommoMap = {
 	account: 'getInfo';
-	leads: 'getLeads' | 'createLeads' | 'updateLeads';
+	leads: 'getLeads' | 'createLeads' | 'createLeadsComplex' | 'updateLeads';
 	contacts: 'getContacts' | 'createContacts' | 'updateContacts';
 	companies: 'getCompany' | 'createCompany' | 'updateCompany';
 	notes: 'getNotes' | 'createNotes' | 'updateNotes';
@@ -22,6 +22,7 @@ type IKommoMap = {
 	transactions: 'get' | 'create' | 'update';
 	invoices: 'getInvoices' | 'createInvoices' | 'updateInvoices';
 	webhooks: 'create' | 'get' | 'delete';
+	entityLinks: 'get' | 'link' | 'unlink';
 };
 
 export type IKommo = AllEntities<IKommoMap>;
@@ -41,6 +42,7 @@ export type IListsKommo = Entity<IKommoMap, 'lists'>;
 export type ITransactionsKommo = Entity<IKommoMap, 'transactions'>;
 export type IInvoicesKommo = Entity<IKommoMap, 'invoices'>;
 export type IWebhooksKommo = Entity<IKommoMap, 'webhooks'>;
+export type IEntityLinksKommo = Entity<IKommoMap, 'entityLinks'>;
 
 export type IAccountProperties = PropertiesOf<IAccountKommo>;
 export type ILeadsProperties = PropertiesOf<ILeadsKommo>;
@@ -57,6 +59,7 @@ export type ITransactionsProperties = PropertiesOf<ITransactionsKommo>;
 export type ICustomersProperties = PropertiesOf<ICustomersKommo>;
 export type IInvoicesProperties = PropertiesOf<IInvoicesKommo>;
 export type IWebhooksProperties = PropertiesOf<IWebhooksKommo>;
+export type IEntityLinksProperties = PropertiesOf<IEntityLinksKommo>;
 
 export interface IAttachment {
 	fields: {

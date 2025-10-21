@@ -384,52 +384,40 @@ export const getPurchaseProducts = cacheOptionsRequest(async function getPurchas
 	this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
     try {
-        console.log('[getPurchaseProducts] Iniciando busca por catálogos de produtos...');
 
         // 1. Buscar catálogos disponíveis
         const catalogsResponse = await apiRequest.call(this, 'GET', 'catalogs', {});
-        console.log('[getPurchaseProducts] Resposta da API de catálogos:', JSON.stringify(catalogsResponse, null, 2));
 
         if (!catalogsResponse?._embedded?.catalogs) {
-            console.log('[getPurchaseProducts] ❌ Nenhum catálogo encontrado na resposta');
             return [];
         }
 
         const catalogs = catalogsResponse._embedded.catalogs;
-        console.log(`[getPurchaseProducts] Encontrados ${catalogs.length} catálogos:`);
         catalogs.forEach((catalog: ICatalog) => {
-            console.log(`  - ${catalog.name} (Type: ${catalog.type}, ID: ${catalog.id})`);
         });
 
         // 2. Encontrar catálogo de produtos (type = "products")
         const productCatalog = catalogs.find((catalog: ICatalog) => catalog.type === 'products');
 
         if (!productCatalog) {
-            console.log('[getPurchaseProducts] ❌ Nenhum catálogo de produtos encontrado');
-            console.log('[getPurchaseProducts] Tipos de catálogos disponíveis:', catalogs.map((c: ICatalog) => c.type));
             return [];
         }
 
-        console.log(`[getPurchaseProducts] ✅ Catálogo de produtos encontrado: ${productCatalog.name} (ID: ${productCatalog.id})`);
 
         // 3. Buscar elementos do catálogo de produtos
         const elementsResponse = await apiRequest.call(this, 'GET', `catalogs/${productCatalog.id}/elements`, {});
-        console.log('[getPurchaseProducts] Resposta dos elementos:', JSON.stringify(elementsResponse, null, 2));
 
         if (!elementsResponse?._embedded?.elements) {
-            console.log('[getPurchaseProducts] ❌ Nenhum elemento encontrado no catálogo');
             return [];
         }
 
         const elements = elementsResponse._embedded.elements;
-        console.log(`[getPurchaseProducts] Encontrados ${elements.length} produtos no catálogo`);
 
         const products = elements.map((el: ICatalogElement) => ({
             name: el.name,
             value: el.id,
         }));
 
-        console.log(`[getPurchaseProducts] ✅ Total de produtos retornados: ${products.length}`);
         return products;
 
     } catch (error) {
@@ -442,21 +430,16 @@ export const getPurchaseCatalogCustomFields = cacheOptionsRequest(async function
 	this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
 	try {
-		console.log('[getPurchaseCatalogCustomFields] Iniciando busca por catálogo de invoices...');
 
 		// 1. Buscar catálogos disponíveis
 		const catalogsResponse = await apiRequest.call(this, 'GET', 'catalogs', {});
-		console.log('[getPurchaseCatalogCustomFields] Resposta da API de catálogos:', JSON.stringify(catalogsResponse, null, 2));
 
 		if (!catalogsResponse?._embedded?.catalogs) {
-			console.log('[getPurchaseCatalogCustomFields] ❌ Nenhum catálogo encontrado na resposta');
 			return [];
 		}
 
 		const catalogs = catalogsResponse._embedded.catalogs;
-		console.log(`[getPurchaseCatalogCustomFields] Encontrados ${catalogs.length} catálogos:`);
 		catalogs.forEach((catalog: ICatalog) => {
-			console.log(`  - ${catalog.name} (Type: ${catalog.type}, ID: ${catalog.id})`);
 		});
 
 		// 2. Encontrar catálogo de invoices (type = "invoices")
@@ -464,7 +447,6 @@ export const getPurchaseCatalogCustomFields = cacheOptionsRequest(async function
 
 		// Se não encontrou tipo "invoices", tentar alternativas
 		if (!invoicesCatalog) {
-			console.log('[getPurchaseCatalogCustomFields] Catálogo com type="invoices" não encontrado, tentando alternativas...');
 			const alternativeNames = ['invoice', 'fatura', 'compra', 'purchase'];
 			invoicesCatalog = catalogs.find((catalog: ICatalog) =>
 				alternativeNames.some(name =>
@@ -474,24 +456,18 @@ export const getPurchaseCatalogCustomFields = cacheOptionsRequest(async function
 		}
 
 		if (!invoicesCatalog) {
-			console.log('[getPurchaseCatalogCustomFields] ❌ Nenhum catálogo de invoices encontrado');
-			console.log('[getPurchaseCatalogCustomFields] Tipos de catálogos disponíveis:', catalogs.map((c: ICatalog) => c.type));
 			return [];
 		}
 
-		console.log(`[getPurchaseCatalogCustomFields] ✅ Catálogo de invoices encontrado: ${invoicesCatalog.name} (ID: ${invoicesCatalog.id})`);
 
 		// 3. Buscar custom fields do catálogo de invoices
 		const cfResponse = await apiRequest.call(this, 'GET', `catalogs/${invoicesCatalog.id}/custom_fields`, {});
-		console.log('[getPurchaseCatalogCustomFields] Resposta dos custom fields:', JSON.stringify(cfResponse, null, 2));
 
 		if (!cfResponse?._embedded?.custom_fields) {
-			console.log('[getPurchaseCatalogCustomFields] ❌ Nenhum custom field encontrado no catálogo');
 			return [];
 		}
 
 		const customFields = cfResponse._embedded.custom_fields;
-		console.log(`[getPurchaseCatalogCustomFields] Encontrados ${customFields.length} custom fields`);
 
 		// Filtrar campos que já estão na interface principal
 		const filteredFields = customFields.filter((field: ICustomField) => {
@@ -499,7 +475,6 @@ export const getPurchaseCatalogCustomFields = cacheOptionsRequest(async function
 			return !excludedCodes.includes(field.code);
 		});
 
-		console.log(`[getPurchaseCatalogCustomFields] Após filtro: ${filteredFields.length} custom fields`);
 
 		return filteredFields.map((field: ICustomField) => ({
 			name: `${field.name} (${field.type})`,
@@ -578,7 +553,6 @@ export const getInvoiceStatusOptions = cacheOptionsRequest(async function getInv
 		const invoicesCatalog = catalogs.find((catalog: ICatalog) => catalog.type === 'invoices');
 
 		if (!invoicesCatalog) {
-			console.log('[getInvoiceStatusOptions] Nenhum catálogo de invoices encontrado');
 			return [
 				{ name: 'Created', value: 'Created' },
 				{ name: 'Pending', value: 'Pending' },
@@ -601,7 +575,6 @@ export const getInvoiceStatusOptions = cacheOptionsRequest(async function getInv
 		}
 
 		if (!statusField) {
-			console.log('[getInvoiceStatusOptions] Campo de status não encontrado no catálogo');
 			return [
 				{ name: 'Created', value: 'Created' },
 				{ name: 'Pending', value: 'Pending' },
@@ -614,7 +587,6 @@ export const getInvoiceStatusOptions = cacheOptionsRequest(async function getInv
 		const statusOptions = statusField.enums || [];
 
 		if (statusOptions.length === 0) {
-			console.log('[getInvoiceStatusOptions] Nenhuma opção de status encontrada no campo');
 			return [
 				{ name: 'Created', value: 'Created' },
 				{ name: 'Pending', value: 'Pending' },
@@ -655,7 +627,6 @@ export const getTransactionStatusOptions = cacheOptionsRequest(async function ge
 		const productsCatalog = catalogs.find((catalog: ICatalog) => catalog.type === 'products');
 
 		if (!productsCatalog) {
-			console.log('[getTransactionStatusOptions] Nenhum catálogo de produtos encontrado');
 			return [];
 		}
 
@@ -667,7 +638,6 @@ export const getTransactionStatusOptions = cacheOptionsRequest(async function ge
 		let statusField = customFields.find((f: any) => f.name === 'Status');
 
 		if (!statusField) {
-			console.log('[getTransactionStatusOptions] Campo de status não encontrado no catálogo');
 			return [];
 		}
 
@@ -675,7 +645,6 @@ export const getTransactionStatusOptions = cacheOptionsRequest(async function ge
 		const statusOptions = statusField.enums || [];
 
 		if (statusOptions.length === 0) {
-			console.log('[getTransactionStatusOptions] Nenhuma opção de status encontrada no campo');
 			return [];
 		}
 

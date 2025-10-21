@@ -1,18 +1,18 @@
 {
-	"node": "n8n-nodes-kommo-plus.kommo",
-	"nodeVersion": "1.0",
-	"codexVersion": "1.0",
-	"categories": ["Miscellaneous"],
+	"node": "n8n-nodes-kommo.kommo",
+	"nodeVersion": "1.0.0",
+	"codexVersion": "1.0.0",
+	"categories": ["CRM", "Sales", "Marketing"],
 	"resources": {
-		"credentialDocumentation": [
-			{
-				"url": ""
-			}
-		],
-		"primaryDocumentation": [
-			{
-				"url": ""
-			}
-		]
-	}
-}
+	  "credentialDocumentation": [
+		{ "url": "https://developers.kommo.com/docs/oauth-20" }
+	  ],
+	  "primaryDocumentation": [
+		{ "url": "https://github.com/username/n8n-nodes-kommo" }
+	  ]
+	},
+	"alias": ["amocrm", "crm"]
+  }
+  
+  
+  

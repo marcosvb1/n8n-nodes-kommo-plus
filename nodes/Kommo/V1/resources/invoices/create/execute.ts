@@ -44,24 +44,17 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
     const elements = (this.getNodeParameter('collection.element', index, []) as IPurchaseForm[]) || [];
 
     const bodyPromises = elements.map(async (element) => {
-        console.log(`[Purchases CREATE] Processando elemento:`, JSON.stringify(element, null, 2));
 
         const customFields: any[] = [];
 
         // 1. Campo PAYER (obrigatório)
         if (payerField && element.buyer?.buyer_details) {
-            console.log(`[Purchases CREATE] Processando buyer:`, JSON.stringify(element.buyer, null, 2));
             const payerValue = createPayerFieldValue(element.buyer.buyer_details);
-            console.log(`[Purchases CREATE] Payer value gerado:`, JSON.stringify(payerValue, null, 2));
             if (payerValue) {
                 customFields.push({
                     field_id: payerField.id,
                     values: [payerValue]
                 });
-                console.log(`[Purchases CREATE] Campo PAYER adicionado:`, JSON.stringify({
-                    field_id: payerField.id,
-                    values: [payerValue]
-                }, null, 2));
             }
         }
 
@@ -74,11 +67,9 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             if (!selectedStatus && Array.isArray(statusField.enums) && statusField.enums.length > 0) {
                 statusEnum = statusField.enums[0];
                 selectedStatus = statusEnum.value || statusEnum.name || 'Created';
-                console.log(`[Purchases CREATE] Nenhum status especificado. Usando primeiro disponível: ${selectedStatus}`);
             } else if (!selectedStatus) {
                 // Fallback se não houver enums disponíveis
                 selectedStatus = 'Created';
-                console.log(`[Purchases CREATE] Nenhum status especificado e nenhuma opção encontrada. Usando fallback: ${selectedStatus}`);
             } else if (Array.isArray(statusField.enums) && statusField.enums.length > 0) {
                 // Procurar o enum correspondente ao status especificado
                 statusEnum = statusField.enums.find((e: any) => e.value === selectedStatus || e.name === selectedStatus) || null;
@@ -87,20 +78,16 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             // Preferir sempre enum_id quando possível
             if (statusEnum?.id) {
                 customFields.push({ field_id: statusField.id, values: [{ enum_id: statusEnum.id }] });
-                console.log(`[Purchases CREATE] Status usando enum_id: ${selectedStatus} -> ID ${statusEnum.id}`);
             } else if (Array.isArray(statusField.enums) && statusField.enums[0]?.id) {
                 const fallbackEnumId = statusField.enums[0].id;
                 customFields.push({ field_id: statusField.id, values: [{ enum_id: fallbackEnumId }] });
-                console.log(`[Purchases CREATE] Status sem correspondência. Usando primeiro enum_id disponível: ${fallbackEnumId}`);
             } else {
                 customFields.push({ field_id: statusField.id, values: [{ value: selectedStatus }] });
-                console.log(`[Purchases CREATE] Status usando value (último fallback): ${selectedStatus}`);
             }
         }
 
         // 3. Campo ITEMS se fornecidos
         if (element.invoice_items?.invoice_item?.length && itemsField) {
-            console.log(`[Purchases CREATE] Processando invoice_items:`, JSON.stringify(element.invoice_items, null, 2));
 			const invoiceItemsValues = makeMultipleInvoiceItemsReqObject(element.invoice_items);
 			// Auto-preencher description com o nome do produto quando ausente
 			try {
@@ -127,18 +114,12 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 					}
 				}
 			} catch (autoDescErr) {
-				console.log('[Purchases CREATE] ⚠️ Falha ao preencher description automática dos itens:', autoDescErr);
 			}
-            console.log(`[Purchases CREATE] Invoice items values gerados:`, JSON.stringify(invoiceItemsValues, null, 2));
             if (invoiceItemsValues.length > 0) {
                 customFields.push({
                     field_id: itemsField.id,
                     values: invoiceItemsValues
                 });
-                console.log(`[Purchases CREATE] Campo ITEMS adicionado:`, JSON.stringify({
-                    field_id: itemsField.id,
-                    values: invoiceItemsValues
-                }, null, 2));
 
 				// 3.1. Calcular e adicionar o campo PRICE (se existir)
 				if (priceField) {
@@ -154,7 +135,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 							field_id: priceField.id,
 							values: [{ value: totalPrice }]
 						});
-						console.log(`[Purchases CREATE] Campo PRICE adicionado: ${totalPrice}`);
 					}
 				}
             }
@@ -175,12 +155,9 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 				// 5. Campo CREATED_AT será adicionado como date_create no payload principal, não como custom field
 		// 6. Custom fields adicionais (se houver)
 		if (element.custom_fields_values && element.custom_fields_values.custom_field && element.custom_fields_values.custom_field.length > 0) {
-			console.log(`[Purchases CREATE] Processando ${element.custom_fields_values.custom_field.length} custom fields adicionais:`, JSON.stringify(element.custom_fields_values, null, 2));
 			const additionalFields = makePurchaseCustomFieldReqObject(element.custom_fields_values.custom_field);
-			console.log(`[Purchases CREATE] Custom fields processados:`, JSON.stringify(additionalFields, null, 2));
 			customFields.push(...additionalFields);
 		} else {
-			console.log(`[Purchases CREATE] ⚠️ Nenhum custom field adicional fornecido:`, element.custom_fields_values);
 		}
 
         const purchaseData: any = {
@@ -199,7 +176,6 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
 			const createdTimestamp = getTimestampFromDateString(element.created_at);
 			if (createdTimestamp) {
 				purchaseData.created_at = createdTimestamp;
-				console.log(`[Purchases CREATE] Campo created_at adicionado: ${element.created_at} -> ${createdTimestamp}`);
 			}
 		}
 
@@ -207,13 +183,11 @@ export async function execute(this: IExecuteFunctions, index: number): Promise<a
             purchaseData.request_id = element.request_id;
         }
 
-        console.log(`[Purchases CREATE] Payload final do elemento:`, JSON.stringify(purchaseData, null, 2));
         return purchaseData;
     });
 
 	const body = await Promise.all(bodyPromises);
 
-    // Array direto sem wrapper, como funciona com contacts
-    this.logger.debug(`[Purchases CREATE] Final request body being sent to Kommo:`, { body });
-    return await apiRequest.call(this, 'POST', endpoint, body);
+    const responseData = await apiRequest.call(this, 'POST', endpoint, body);
+    return this.helpers.returnJsonArray(responseData);
 }

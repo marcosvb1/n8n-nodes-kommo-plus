@@ -1,7 +1,7 @@
 {
-  "name": "n8n-nodes-kommo-improved",
-  "version": "0.1.26",
-  "description": "Nó n8n para o Kommo CRM com funcionalidades adicionais e melhorias. (v2)",
+  "name": "n8n-nodes-kommo-plus",
+  "version": "1.0.0",
+  "description": "Enhanced n8n node for Kommo CRM with advanced features including Entity Links, complex lead creation, and improved API handling",
   "license": "MIT",
   "author": {
     "name": "Digital Profits",
@@ -11,6 +11,23 @@
     "type": "git",
     "url": "https://github.com/marcosvb1/n8n-nodes-kommo-plus.git"
   },
+  "homepage": "https://github.com/marcosvb1/n8n-nodes-kommo-plus#readme",
+  "bugs": {
+    "url": "https://github.com/marcosvb1/n8n-nodes-kommo-plus/issues"
+  },
+  "keywords": [
+    "n8n",
+    "kommo",
+    "amocrm",
+    "crm",
+    "automation",
+    "entity-links",
+    "leads",
+    "contacts",
+    "companies",
+    "workflow",
+    "integration"
+  ],
   "main": "dist/nodes/Kommo/Kommo.node.js",
   "scripts": {
     "build": "tsc && gulp build",

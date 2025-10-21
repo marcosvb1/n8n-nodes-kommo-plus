@@ -23,10 +23,9 @@ interface FilterFromFrontend {
 export async function execute(
 	this: IExecuteFunctions,
 	index: number,
-): Promise<INodeExecutionData[]> {
+): Promise<IDataObject | IDataObject[]> {
 	const body = {} as IDataObject;
 	const qs = {} as IDataObject;
-    const simplify = this.getNodeParameter('simplify', 0, true) as boolean;
 
 	//--------------------------------Add filter--------------------------------------
 
@@ -92,17 +91,9 @@ export async function execute(
             body,
             qs,
         );
-        if (simplify) {
-            const notes = pages.flatMap((page: any) => page?._embedded?.notes ?? []);
-            return this.helpers.returnJsonArray(notes);
-        }
-        return this.helpers.returnJsonArray(pages);
+        return pages.flatMap((page: any) => page?._embedded?.notes ?? []);
     }
 
     const responseData = await apiRequest.call(this, requestMethod, endpoint, body, qs);
-    if (simplify) {
-        const notes = (responseData as any)?._embedded?.notes ?? [];
-        return this.helpers.returnJsonArray(notes);
-    }
-    return this.helpers.returnJsonArray(responseData);
+    return (responseData as any)?._embedded?.notes ?? responseData;
 }
