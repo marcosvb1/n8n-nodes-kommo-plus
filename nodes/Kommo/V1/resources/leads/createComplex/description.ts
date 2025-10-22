@@ -16,75 +16,63 @@ export const createLeadComplexModel: INodeProperties[] = makeLeadModelDescriptio
 	{
 		displayName: 'Contacts',
 		name: 'contacts',
-		values: [
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+		},
+		default: [],
+		placeholder: 'Add contact',
+		options: [
 			{
-				displayName: 'Contacts',
+				displayName: 'Contact',
 				name: 'contact',
-				type: 'fixedCollection',
-				typeOptions: {
-					multipleValues: true,
-				},
-				default: [],
-				placeholder: 'Add contact',
-				options: [
+				values: [
 					{
-						displayName: 'Contact',
-						name: 'contactItem',
-						values: [
-							{
-								displayName: 'Name',
-								name: 'name',
-								type: 'string',
-								default: '',
-								description: 'Full name of the contact',
-							},
-							{
-								displayName: 'First Name',
-								name: 'first_name',
-								type: 'string',
-								default: '',
-								description: 'First name of the contact',
-							},
-							{
-								displayName: 'Last Name',
-								name: 'last_name',
-								type: 'string',
-								default: '',
-								description: 'Last name of the contact',
-							},
-							addCustomFieldDescription('getContactCustomFields'),
-						],
+						displayName: 'Name',
+						name: 'name',
+						type: 'string',
+						default: '',
+						description: 'Full name of the contact',
 					},
+					{
+						displayName: 'First Name',
+						name: 'first_name',
+						type: 'string',
+						default: '',
+						description: 'First name of the contact',
+					},
+					{
+						displayName: 'Last Name',
+						name: 'last_name',
+						type: 'string',
+						default: '',
+						description: 'Last name of the contact',
+					},
+					addCustomFieldDescription('getContactCustomFields'),
 				],
 			},
 		],
 	},
 	{
-		displayName: 'Companies',
+		displayName: 'Companies (Link Existing)',
 		name: 'companies',
-		values: [
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+		},
+		default: [],
+		placeholder: 'Add company',
+		options: [
 			{
-				displayName: 'Companies',
-				name: 'id',
-				type: 'fixedCollection',
-				typeOptions: {
-					multipleValues: true,
-				},
-				default: [],
-				placeholder: 'Add company',
-				options: [
+				displayName: 'Company',
+				name: 'company',
+				values: [
 					{
-						displayName: 'Company',
-						name: 'company',
-						values: [
-							{
-								displayName: 'ID',
-								name: 'id',
-								type: 'number',
-								default: '',
-								description: 'ID of existing company to link',
-							},
-						],
+						displayName: 'Company ID',
+						name: 'id',
+						type: 'number',
+						default: 0,
+						description: 'ID of existing company to link',
 					},
 				],
 			},
