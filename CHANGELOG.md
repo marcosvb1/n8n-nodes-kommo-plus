@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2025-10-23
+
+### Fixed
+- Create Leads Complex: contato embedado agora é criado corretamente e `contact_id` retorna preenchido
+  - Preserva arrays de `custom_fields_values` em contatos embedados (não passa por `clearNullableProps`)
+  - Normaliza diferentes formatos vindos da UI: `contacts.contact`, `[ { contact: { contact: [] } } ]`, `[ { contact: [] } ]`
+  - Limpa apenas campos simples do contato (`name`, `first_name`, `last_name`)
+- Custom Fields multitext (EMAIL/PHONE): aplica `enum_code: "WORK"` quando não informado
+- Remoção de propriedades `undefined` em `values` dos custom fields (evita rejeição silenciosa da API)
+
+### Changed
+- Ordem de processamento no `createComplex/execute.ts`: limpa `leadBody` primeiro e só depois anexa `_embedded`, preservando arrays de `contacts`/`companies`
+
+### Notes
+- Publicado no npm como `n8n-nodes-kommo-plus@1.0.4`
+
 ## [1.0.0] - 2024-01-15
 
 ### Added

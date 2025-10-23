@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-kommo-plus",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "Enhanced n8n node for Kommo CRM with advanced features including Entity Links, complex lead creation, and improved API handling",
   "license": "MIT",
   "author": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/marcosvb1/n8n-nodes-kommo-plus.git"
+    "url": "git+https://github.com/marcosvb1/n8n-nodes-kommo-plus.git"
   },
   "homepage": "https://github.com/marcosvb1/n8n-nodes-kommo-plus#readme",
   "bugs": {
