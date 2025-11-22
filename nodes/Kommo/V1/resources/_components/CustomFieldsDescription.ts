@@ -54,12 +54,13 @@ export const addCustomFieldDescription = (loadOptionsMethod: string): INodePrope
 };
 
 export const makeCustomFieldReqObject = (customFieldsValues: ICustomFieldValuesForm) => {
-    const list = customFieldsValues?.custom_field;
-    if (!Array.isArray(list) || list.length === 0) return [] as Array<{
-        id: number;
-        values: Array<{ value?: number | boolean | string; enum_id?: number; enum_code?: string }>;
-    }>;
-    return list.reduce(
+	const list = customFieldsValues?.custom_field;
+	if (!Array.isArray(list) || list.length === 0)
+		return [] as Array<{
+			id: number;
+			values: Array<{ value?: number | boolean | string; enum_id?: number; enum_code?: string }>;
+		}>;
+	return list.reduce(
 		(
 			acc: Array<{
 				id: number;
@@ -73,17 +74,32 @@ export const makeCustomFieldReqObject = (customFieldsValues: ICustomFieldValuesF
 		) => {
 			// tslint:disable-next-line: variable-name
 			let value, enum_id, enum_code;
-			const data = JSON.parse(cf.data) as { id: number; type: ITypeField };
+			let data: { id: number; type: ITypeField };
+			try {
+				data = JSON.parse(cf.data) as { id: number; type: ITypeField };
+			} catch (error) {
+				return acc; // Skip invalid data
+			}
+
 			if (typeof cf.value === 'object') {
 				return [...acc, { id: data.id, values: cf.value }];
 			}
+
+			// Safe JSON parse check
+			let parsedValue;
+			try {
+				parsedValue = JSON.parse(cf.value);
+			} catch (e) {
+				parsedValue = undefined;
+			}
+
 			if (
 				typeof cf.value === 'string' &&
-				isJson(cf.value) &&
+				parsedValue !== undefined &&
 				!isNumber(cf.value) &&
-				typeof JSON.parse(cf.value) !== 'boolean'
+				typeof parsedValue !== 'boolean'
 			) {
-				return [...acc, { id: data.id, values: JSON.parse(cf.value) }];
+				return [...acc, { id: data.id, values: parsedValue }];
 			}
 
 			if (
@@ -114,59 +130,25 @@ export const makeCustomFieldReqObject = (customFieldsValues: ICustomFieldValuesF
 					value = Boolean(cf.value);
 					break;
 				case 'date':
-					value = Number(cf.value);
-					break;
 				case 'date_time':
-					value = Number(cf.value);
-					break;
 				case 'birthday':
 					value = Number(cf.value);
 					break;
 				case 'text':
-					value = String(cf.value);
-					break;
 				case 'numeric':
-					value = String(cf.value);
-					break;
 				case 'textarea':
-					value = String(cf.value);
-					break;
 				case 'price':
-					value = String(cf.value);
-					break;
 				case 'streetaddress':
-					value = String(cf.value);
-					break;
 				case 'tracking_data':
-					value = String(cf.value);
-					break;
 				case 'monetary':
-					value = String(cf.value);
-					break;
 				case 'url':
+				case 'multitext':
+				case 'smart_address':
 					value = String(cf.value);
 					break;
 				case 'select':
-					if (isNumber(cf.value)) {
-						enum_id = Number(cf.value);
-					} else {
-						value = String(cf.value);
-					}
-					break;
 				case 'multiselect':
-					if (isNumber(cf.value)) {
-						enum_id = Number(cf.value);
-					} else {
-						value = String(cf.value);
-					}
-					break;
 				case 'radiobutton':
-					if (isNumber(cf.value)) {
-						enum_id = Number(cf.value);
-					} else {
-						value = String(cf.value);
-					}
-					break;
 				case 'category':
 					if (isNumber(cf.value)) {
 						enum_id = Number(cf.value);
@@ -174,50 +156,33 @@ export const makeCustomFieldReqObject = (customFieldsValues: ICustomFieldValuesF
 						value = String(cf.value);
 					}
 					break;
-				case 'multitext':
-					value = String(cf.value);
-					break;
-				case 'smart_address':
-					value = String(cf.value);
-					break;
 				case 'legal_entity':
-					value = JSON.parse(cf.value);
-					break;
 				case 'items':
-					value = JSON.parse(cf.value);
-					break;
 				case 'linked_entity':
-					value = JSON.parse(cf.value);
+				case 'file':
+				case 'payer':
+				case 'supplier':
+				case 'tracking_data':
+					try {
+						value = JSON.parse(cf.value);
+					} catch (e) {
+						value = cf.value; // Fallback to raw value if parse fails
+					}
 					break;
 				case 'chained_list':
-					break;
-				case 'file':
-					value = JSON.parse(cf.value);
-					break;
-				case 'payer':
-					value = JSON.parse(cf.value);
-					break;
-				case 'supplier':
-					value = JSON.parse(cf.value);
-					break;
-				case 'tracking_data':
-					value = JSON.parse(cf.value);
 					break;
 				default:
 					break;
 			}
 			if (!enum_id && !enum_code) {
 				if (typeof value === 'undefined') return acc;
-				if (value === 'undefined') return acc;
-				if (value === '') return acc;
+				// Allow 0 and false, only filter out undefined/null/empty string
+				if (value === null || value === '') return acc;
 			}
 			const existRecord = acc.filter((el) => el.id === data.id);
 			if (existRecord.length) {
 				const values = [...existRecord[0].values, { value, enum_id, enum_code }];
-				acc = [
-					...acc.filter((el) => el.id !== data.id),
-					{ id: existRecord[0].id, values },
-				];
+				acc = [...acc.filter((el) => el.id !== data.id), { id: existRecord[0].id, values }];
 			} else {
 				acc.push({ id: data.id, values: [{ value, enum_id, enum_code }] });
 			}
