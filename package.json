@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-kommo-plus",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Enhanced n8n node for Kommo CRM with advanced features including Entity Links, complex lead creation, and improved API handling",
   "license": "MIT",
   "author": {
