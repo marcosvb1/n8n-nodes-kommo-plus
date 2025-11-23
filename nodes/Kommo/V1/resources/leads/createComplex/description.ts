@@ -14,67 +14,43 @@ const displayOptions: IDisplayOptions | undefined = {
 
 export const createLeadComplexModel: INodeProperties[] = makeLeadModelDescription([
 	{
-		displayName: 'Contacts',
+		displayName: 'Contact',
 		name: 'contacts',
-		type: 'fixedCollection',
-		typeOptions: {
-			multipleValues: true,
-		},
-		default: [],
-		placeholder: 'Add contact',
-		options: [
+		values: [
 			{
-				displayName: 'Contact',
-				name: 'contact',
-				values: [
-					{
-						displayName: 'Name',
-						name: 'name',
-						type: 'string',
-						default: '',
-						description: 'Full name of the contact',
-					},
-					{
-						displayName: 'First Name',
-						name: 'first_name',
-						type: 'string',
-						default: '',
-						description: 'First name of the contact',
-					},
-					{
-						displayName: 'Last Name',
-						name: 'last_name',
-						type: 'string',
-						default: '',
-						description: 'Last name of the contact',
-					},
-					addCustomFieldDescription('getContactCustomFields'),
-				],
+				displayName: 'Name',
+				name: 'name',
+				type: 'string',
+				default: '',
+				description: 'Full name of the contact',
 			},
+			{
+				displayName: 'First Name',
+				name: 'first_name',
+				type: 'string',
+				default: '',
+				description: 'First name of the contact',
+			},
+			{
+				displayName: 'Last Name',
+				name: 'last_name',
+				type: 'string',
+				default: '',
+				description: 'Last name of the contact',
+			},
+			addCustomFieldDescription('getContactCustomFields'),
 		],
 	},
 	{
-		displayName: 'Companies (Link Existing)',
+		displayName: 'Company (Link Existing)',
 		name: 'companies',
-		type: 'fixedCollection',
-		typeOptions: {
-			multipleValues: true,
-		},
-		default: [],
-		placeholder: 'Add company',
-		options: [
+		values: [
 			{
-				displayName: 'Company',
-				name: 'company',
-				values: [
-					{
-						displayName: 'Company ID',
-						name: 'id',
-						type: 'number',
-						default: 0,
-						description: 'ID of existing company to link',
-					},
-				],
+				displayName: 'Company ID',
+				name: 'id',
+				type: 'number',
+				default: 0,
+				description: 'ID of existing company to link',
 			},
 		],
 	},
